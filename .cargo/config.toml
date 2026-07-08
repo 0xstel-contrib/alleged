@@ -1,0 +1,5 @@
+[profile.release]
+opt-level = 3
+debug = false
+strip = true
+lto = "thin"
