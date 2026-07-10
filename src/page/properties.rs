@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Debug)]
@@ -27,6 +29,39 @@ pub struct PageProperties {
     pub filters: Vec<String>,
     pub public: bool,
     pub exclude_from_graph_view: bool,
+}
+
+impl fmt::Display for PageProperties {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(icon) = &self.icon {
+            writeln!(f, "icon:: {}", icon)?;
+        }
+        if let Some(title) = &self.title {
+            writeln!(f, "title:: {}", title)?;
+        }
+        if !self.tags.is_empty() {
+            writeln!(f, "tags:: {}", self.tags.join(", "))?;
+        }
+        if let Some(template) = &self.template {
+            writeln!(f, "template:: {}", template)?;
+        }
+        if self.template_including_parent {
+            writeln!(f, "template-including-parent:: true")?;
+        }
+        if !self.alias.is_empty() {
+            writeln!(f, "alias:: {}", self.alias.join(", "))?;
+        }
+        if !self.filters.is_empty() {
+            writeln!(f, "filters:: {}", self.filters.join(", "))?;
+        }
+        if self.public {
+            writeln!(f, "public:: true")?;
+        }
+        if self.exclude_from_graph_view {
+            writeln!(f, "exclude-from-graph-view:: true")?;
+        }
+        Ok(())
+    }
 }
 
 impl From<RawPageProperties> for PageProperties {

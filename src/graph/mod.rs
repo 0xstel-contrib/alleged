@@ -7,9 +7,9 @@ use crate::{
     file::{File, FileError},
     page::Page,
 };
-use comrak::{Options, parse_document};
+use comrak::{Node, Options, nodes::NodeValue, parse_document};
 use rustc_hash::FxHashMap;
-use std::{ffi::OsStr, path::PathBuf};
+use std::{borrow::Cow, ffi::OsStr, fs, path::PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
 pub struct Graph {
@@ -55,6 +55,37 @@ impl Graph {
 
     pub fn entries<'a>(&self) -> impl Iterator<Item = File<'a>> {
         self.pages().chain(self.journals())
+    }
+
+    fn _edit_node<'a, F>(&self, node: Node<'a>, mut edit_callback: F)
+    where
+        F: FnMut(&mut Cow<'static, str>) -> String,
+    {
+        for child in node.children() {
+            if let NodeValue::Text(ref mut text) = child.data_mut().value {
+                *text = edit_callback(text).into();
+            }
+
+            self._edit_node(child, &mut edit_callback);
+        }
+    }
+
+    pub fn edit_node<'a, F>(
+        &self,
+        node: Node<'a>,
+        file: &'a mut File<'a>,
+        page: Page<'a>,
+        mut edit_callback: F,
+    ) -> Result<(), FileError>
+    where
+        F: FnMut(&mut Cow<'static, str>) -> String,
+    {
+        self._edit_node(node, &mut edit_callback);
+        let markdown = page.to_logseq_markdown()?;
+        fs::write(&file.path, markdown.as_bytes())?;
+        file.load()?;
+
+        Ok(())
     }
 
     pub fn parse_file<'a, F>(

@@ -1,5 +1,5 @@
 use comrak::Arena;
-use std::{fs, io, path::PathBuf};
+use std::{fmt, fs, io, path::PathBuf};
 use thiserror::Error;
 use walkdir::DirEntry;
 
@@ -25,6 +25,8 @@ pub enum FileError {
     FileNotLoaded,
     #[error("Failed to parse the given file! ({0})")]
     FileParseFailed(#[from] PageError),
+    #[error("Formatting file content failed: {0}")]
+    ContentFormatFailed(#[from] fmt::Error),
 }
 
 impl File<'_> {
