@@ -61,7 +61,7 @@ impl Graph {
         self.pages().chain(self.journals())
     }
 
-    fn _edit_node<'a, F>(&self, node: Node<'a>, edit_callback: &mut F)
+    fn edit_text_nodes_recursive<F>(node: Node<'_>, edit_callback: &mut F)
     where
         F: FnMut(String) -> String,
     {
@@ -70,15 +70,15 @@ impl Graph {
                 *text = edit_callback(text.to_string()).into();
             }
 
-            self._edit_node(child, edit_callback);
+            Self::edit_text_nodes_recursive(child, edit_callback);
         }
     }
 
-    pub fn edit_node<'a, F>(&self, node: Node<'a>, edit_callback: &mut F)
+    pub fn edit_text_node<F>(node: Node<'_>, edit_callback: &mut F)
     where
         F: FnMut(String) -> String,
     {
-        self._edit_node(node, edit_callback);
+        Self::edit_text_nodes_recursive(node, edit_callback);
     }
 
     pub fn parse_file<'a>(&self, file: &'a File<'a>) -> Result<Page<'a>, FileError> {
@@ -91,7 +91,7 @@ impl Graph {
         Ok(Page::try_from(root)?)
     }
 
-    pub fn save_to_disk<'a, P>(&self, path: &P, page: &Page<'a>) -> Result<(), FileError>
+    pub fn save_to_disk<P>(&self, path: &P, page: &Page<'_>) -> Result<(), FileError>
     where
         P: AsRef<Path>,
     {
