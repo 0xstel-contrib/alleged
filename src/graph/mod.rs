@@ -5,11 +5,15 @@ pub use error::*;
 
 use crate::{
     file::{File, FileError},
-    page::Page,
+    page::{Page, preprocess_logseq_markdown},
 };
 use comrak::{Node, Options, nodes::NodeValue, parse_document};
 use rustc_hash::FxHashMap;
-use std::{borrow::Cow, ffi::OsStr, fs, path::PathBuf};
+use std::{
+    ffi::OsStr,
+    fs,
+    path::{Path, PathBuf},
+};
 use walkdir::{DirEntry, WalkDir};
 
 pub struct Graph {
@@ -57,62 +61,41 @@ impl Graph {
         self.pages().chain(self.journals())
     }
 
-    fn _edit_node<'a, F>(&self, node: Node<'a>, mut edit_callback: F)
+    fn _edit_node<'a, F>(&self, node: Node<'a>, edit_callback: &mut F)
     where
-        F: FnMut(&mut Cow<'static, str>) -> String,
+        F: FnMut(String) -> String,
     {
         for child in node.children() {
             if let NodeValue::Text(ref mut text) = child.data_mut().value {
-                *text = edit_callback(text).into();
+                *text = edit_callback(text.to_string()).into();
             }
 
-            self._edit_node(child, &mut edit_callback);
+            self._edit_node(child, edit_callback);
         }
     }
 
-    pub fn edit_node<'a, F>(
-        &self,
-        node: Node<'a>,
-        file: &'a mut File<'a>,
-        page: Page<'a>,
-        mut edit_callback: F,
-    ) -> Result<(), FileError>
+    pub fn edit_node<'a, F>(&self, node: Node<'a>, edit_callback: &mut F)
     where
-        F: FnMut(&mut Cow<'static, str>) -> String,
+        F: FnMut(String) -> String,
     {
-        self._edit_node(node, &mut edit_callback);
-        let markdown = page.to_logseq_markdown()?;
-        fs::write(&file.path, markdown.as_bytes())?;
-        file.load()?;
-
-        Ok(())
+        self._edit_node(node, edit_callback);
     }
 
-    pub fn parse_file<'a, F>(
-        &self,
-        file: &'a File<'a>,
-        preprocess_markdown: F,
-    ) -> Result<Page<'a>, FileError>
-    where
-        F: Fn(&str) -> String,
-    {
+    pub fn parse_file<'a>(&self, file: &'a File<'a>) -> Result<Page<'a>, FileError> {
         let buffer = file.get_buffer()?;
         let root = parse_document(
             &file.arena,
-            preprocess_markdown(buffer).as_str(),
+            preprocess_logseq_markdown(buffer).as_str(),
             &self.comrak_options,
         );
-        let mut page = Page::try_from(root)?;
+        Ok(Page::try_from(root)?)
+    }
 
-        // HACK: For pages without an explicit title in their properties, override w/ file name
-        page.properties.title = match page.properties.title {
-            Some(_) => page.properties.title,
-            None => file
-                .path
-                .file_stem()
-                .and_then(|s| s.to_str().map(String::from)),
-        };
-
-        Ok(page)
+    pub fn save_to_disk<'a, P>(&self, path: &P, page: &Page<'a>) -> Result<(), FileError>
+    where
+        P: AsRef<Path>,
+    {
+        fs::write(path, page.to_logseq_markdown()?.as_bytes())?;
+        Ok(())
     }
 }

@@ -1,4 +1,4 @@
-use comrak::options::{Extension, Options};
+use comrak::options::{Extension, Options, Render};
 use std::sync::LazyLock;
 
 pub const FRONTMATTER_DELIM: &str = "---";
@@ -13,9 +13,13 @@ pub static DEFAULT_COMRAK_OPTIONS: LazyLock<Options<'static>> = LazyLock::new(||
         .underline(true)
         .front_matter_delimiter(FRONTMATTER_DELIM.to_string())
         .build();
+    let render = Render::builder()
+        .experimental_minimize_commonmark(true)
+        .build();
 
     Options {
         extension,
+        render,
         ..Default::default()
     }
 });

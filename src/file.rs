@@ -1,9 +1,8 @@
+use crate::page::PageError;
 use comrak::Arena;
 use std::{fmt, fs, io, path::PathBuf};
 use thiserror::Error;
 use walkdir::DirEntry;
-
-use crate::page::PageError;
 
 pub struct File<'a> {
     pub(crate) arena: Arena<'a>,
