@@ -46,10 +46,10 @@ impl<'a> TryFrom<Node<'a>> for Page<'a> {
         };
 
         // Remove frontmatter node from the AST
-        if let Some(first_child) = root.first_child() {
-            if matches!(first_child.data().value, NodeValue::FrontMatter(_)) {
-                first_child.detach();
-            }
+        if let Some(first_child) = root.first_child()
+            && matches!(first_child.data().value, NodeValue::FrontMatter(_))
+        {
+            first_child.detach();
         }
 
         Ok(Self { properties, root })

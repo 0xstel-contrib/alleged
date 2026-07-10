@@ -34,16 +34,16 @@ pub struct PageProperties {
 impl fmt::Display for PageProperties {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(icon) = &self.icon {
-            writeln!(f, "icon:: {}", icon)?;
+            writeln!(f, "icon:: {icon}")?;
         }
         if let Some(title) = &self.title {
-            writeln!(f, "title:: {}", title)?;
+            writeln!(f, "title:: {title}")?;
         }
         if !self.tags.is_empty() {
             writeln!(f, "tags:: {}", self.tags.join(", "))?;
         }
         if let Some(template) = &self.template {
-            writeln!(f, "template:: {}", template)?;
+            writeln!(f, "template:: {template}")?;
         }
         if self.template_including_parent {
             writeln!(f, "template-including-parent:: true")?;
