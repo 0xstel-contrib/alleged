@@ -1,9 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
-use serde::{Deserialize, Serialize};
-
 #[derive(Serialize, Deserialize, Default, Debug)]
-pub(crate) struct RawPageProperties {
+pub(crate) struct RawProperties {
     icon: Option<String>,
     title: Option<String>,
     tags: Option<String>,
@@ -19,7 +18,7 @@ pub(crate) struct RawPageProperties {
 
 #[derive(Default, Debug)]
 #[allow(dead_code)]
-pub struct PageProperties {
+pub struct Properties {
     pub icon: Option<String>,
     pub title: Option<String>,
     pub tags: Vec<String>,
@@ -31,7 +30,32 @@ pub struct PageProperties {
     pub exclude_from_graph_view: bool,
 }
 
-impl fmt::Display for PageProperties {
+impl From<RawProperties> for Properties {
+    fn from(raw: RawProperties) -> Self {
+        // TODO: Handle tags
+        let tags = Vec::new();
+        let alias = raw
+            .alias
+            .map(|c| c.split(',').map(String::from).collect())
+            .unwrap_or_default();
+        // TODO: Handle filters
+        let filters = Vec::new();
+
+        Self {
+            tags,
+            alias,
+            filters,
+            icon: raw.icon,
+            title: raw.title,
+            template: raw.template,
+            template_including_parent: raw.template_including_parent.unwrap_or(false),
+            public: raw.public.unwrap_or(false),
+            exclude_from_graph_view: raw.exclude_from_graph_view.unwrap_or(false),
+        }
+    }
+}
+
+impl fmt::Display for Properties {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(icon) = &self.icon {
             writeln!(f, "icon:: {icon}")?;
@@ -60,31 +84,7 @@ impl fmt::Display for PageProperties {
         if self.exclude_from_graph_view {
             writeln!(f, "exclude-from-graph-view:: true")?;
         }
+
         Ok(())
-    }
-}
-
-impl From<RawPageProperties> for PageProperties {
-    fn from(value: RawPageProperties) -> Self {
-        // TODO: Handle tags
-        let tags = Vec::new();
-        let alias = value
-            .alias
-            .map(|c| c.split(',').map(String::from).collect())
-            .unwrap_or_default();
-        // TODO: Handle filters
-        let filters = Vec::new();
-
-        Self {
-            tags,
-            alias,
-            filters,
-            icon: value.icon,
-            title: value.title,
-            template: value.template,
-            template_including_parent: value.template_including_parent.unwrap_or(false),
-            public: value.public.unwrap_or(false),
-            exclude_from_graph_view: value.exclude_from_graph_view.unwrap_or(false),
-        }
     }
 }

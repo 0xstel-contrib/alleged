@@ -1,9 +1,5 @@
-use crate::{
-    consts::DEFAULT_COMRAK_OPTIONS,
-    graph::{Graph, GraphBuilderError},
-};
+use crate::{consts::DEFAULT_COMRAK_OPTIONS, error::GraphBuilderError, graph::Graph};
 use comrak::Options;
-use rustc_hash::FxHashMap;
 use std::path::PathBuf;
 
 #[derive(Default)]
@@ -39,7 +35,6 @@ impl GraphBuilder {
             comrak_options,
             root,
             exclude: self.exclude,
-            buffers: FxHashMap::default(),
         })
     }
 }

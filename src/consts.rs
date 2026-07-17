@@ -1,11 +1,11 @@
 use comrak::options::{Extension, Options, Render};
 use std::sync::LazyLock;
 
+pub const GRAPH_LAYOUT: [&str; 3] = ["journals", "logseq", "pages"];
 pub const FRONTMATTER_DELIM: &str = "---";
 
 pub static DEFAULT_COMRAK_OPTIONS: LazyLock<Options<'static>> = LazyLock::new(|| {
     let extension = Extension::builder()
-        .wikilinks_title_before_pipe(true)
         .strikethrough(true)
         .tasklist(true)
         .footnotes(true)
