@@ -1,15 +1,25 @@
+[workspace]
+members = ["bindings/*"]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["stel <stel@national.shitposting.agency>"]
+edition = "2024"
+license = "0BSD"
+
 [package]
 name = "alleged-lib"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
 chrono = { version = "0.4.45", features = ["serde"] }
-comrak = { version = "0.53.0", default-features = false, features = ["syntect-onig", "bon"] }
+comrak = { version = "0.53.0", default-features = false, features = ["bon"] }
 gray_matter = "0.3.2"
 humantime = "2.4.0"
 regex = "1.12.4"
-rustc-hash = "2.1.2"
 serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.18"
 walkdir = "2.5.0"

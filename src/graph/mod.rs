@@ -1,9 +1,12 @@
 mod builder;
 mod entry;
 pub use builder::*;
-use comrak::Options;
 pub use entry::*;
-use std::{ffi::OsStr, path::PathBuf};
+
+use crate::error::GraphError;
+use chrono::NaiveDate;
+use comrak::Options;
+use std::{ffi::OsStr, fs, path::PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
 pub struct Graph {
@@ -13,10 +16,6 @@ pub struct Graph {
 }
 
 impl Graph {
-    #[must_use]
-    pub fn builder() -> GraphBuilder {
-        GraphBuilder::default()
-    }
     fn is_excluded(&self, entry: &DirEntry) -> bool {
         entry
             .file_name()
@@ -29,11 +28,47 @@ impl Graph {
             .into_iter()
             .filter_entry(|e| !self.is_excluded(e))
             .filter_map(Result::ok)
-            .filter(|entry| entry.file_type().is_file())
-            .filter(|entry| entry.path().extension() == Some(OsStr::new("md")))
+            .filter(|entry| {
+                entry.file_type().is_file() && entry.path().extension() == Some(OsStr::new("md"))
+            })
     }
-    pub fn entries(&self) -> impl Iterator<Item = GraphEntry<'_>> {
+    fn entries(&self) -> impl Iterator<Item = GraphEntry<'_>> {
         self.markdown_files()
             .filter_map(|entry| GraphEntry::new(entry.into_path(), &self.comrak_options).ok())
+    }
+    #[must_use]
+    pub fn builder() -> GraphBuilder {
+        GraphBuilder::default()
+    }
+    pub fn journals(&self) -> impl Iterator<Item = GraphEntry<'_>> {
+        self.entries()
+            .filter(|entry| matches!(entry.kind, EntryKind::Journal(_)))
+    }
+    pub fn pages(&self) -> impl Iterator<Item = GraphEntry<'_>> {
+        self.entries()
+            .filter(|entry| matches!(entry.kind, EntryKind::Page(_)))
+    }
+    fn entry(&self, entry: &EntryKind) -> Result<GraphEntry<'_>, GraphError> {
+        let relative_path: PathBuf = entry.as_relative_path().into();
+        GraphEntry::new(self.root.join(relative_path), &self.comrak_options)
+    }
+    pub fn journal(&self, date: NaiveDate) -> Result<GraphEntry<'_>, GraphError> {
+        self.entry(&EntryKind::Journal(date))
+    }
+    pub fn page(&self, key: &str) -> Result<GraphEntry<'_>, GraphError> {
+        for mut entry in self.entries() {
+            if let Some(props) = entry.properties()?
+                && props.alias.iter().any(|a| a == key)
+            {
+                return Ok(entry);
+            }
+        }
+
+        self.entry(&EntryKind::Page(key.to_string()))
+    }
+    pub fn save(&self, entry: &mut GraphEntry<'_>) -> Result<(), GraphError> {
+        fs::write(entry.path(), entry.buffer().as_bytes())?;
+
+        Ok(())
     }
 }

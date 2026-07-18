@@ -1,18 +1,12 @@
+use crate::error::TaskPriorityError;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use thiserror::Error;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum TaskPriority {
     A,
     B,
     C,
-}
-
-#[derive(Error, Debug)]
-pub enum TaskPriorityError {
-    #[error("Invalid task priority!")]
-    InvalidPriority,
 }
 
 impl FromStr for TaskPriority {

@@ -7,13 +7,9 @@ pub use priority::*;
 pub use repeater::*;
 pub use scheduled::*;
 
-use comrak::{
-    Node,
-    nodes::{AstNode, NodeValue},
-};
+use crate::{consts::SCHEDULED_DELIM, error::TaskError};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use thiserror::Error;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
@@ -24,40 +20,15 @@ pub struct Task {
     pub scheduled: Option<Scheduled>,
 }
 
-#[derive(Error, Debug)]
-pub enum TaskError {
-    #[error("The given line was not a task!")]
-    NotATask,
-    #[error("The given list item was empty!")]
-    EmptyItem,
-    #[error("Got an error when processing the task marker: {0}")]
-    TaskMarker(#[from] TaskMarkerError),
-}
+impl FromStr for Task {
+    type Err = TaskError;
 
-fn extract_text<'a>(node: &'a AstNode<'a>, buf: &mut String) {
-    if let NodeValue::Text(text) = &node.data().value {
-        buf.push_str(text);
-    } else if let NodeValue::List(_) = &node.data().value {
-        return;
-    }
-
-    for child in node.children() {
-        extract_text(child, buf);
-    }
-}
-
-impl<'a> TryFrom<Node<'a>> for Task {
-    type Error = TaskError;
-
-    fn try_from(root: Node<'a>) -> Result<Self, Self::Error> {
-        let mut text = String::new();
-        extract_text(root, &mut text);
-
-        let scheduled = text
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let scheduled = s
             .lines()
             .find_map(|line| Scheduled::from_str(line.trim()).ok());
 
-        let mut parts = text.split(' ');
+        let mut parts = s.split(' ');
 
         let marker = parts.next().ok_or(TaskError::EmptyItem)?.parse()?;
 

@@ -1,15 +1,7 @@
-use crate::task::ScheduledRepeater;
+use crate::{consts::SCHEDULED_REGEX, error::ParseScheduledError, task::ScheduledRepeater};
 use chrono::{NaiveDate, NaiveTime, Weekday};
-use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::{str::FromStr, sync::LazyLock};
-
-pub static SCHEDULED_DELIM: &str = "SCHEDULED:";
-pub static SCHEDULED_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(
-        r"SCHEDULED:\s*<(\d{4}-\d{2}-\d{2})\s+([A-Za-z]{3})(?:\s+(\d{1,2}:\d{2}))?(?:\s+([\.\+]*\+\d+[ymwdh]))?>$"
-    ).unwrap()
-});
+use std::str::FromStr;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Scheduled {
@@ -19,9 +11,6 @@ pub struct Scheduled {
     pub repeater: Option<ScheduledRepeater>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct ParseScheduledError;
-
 impl FromStr for Scheduled {
     type Err = ParseScheduledError;
 
@@ -30,11 +19,11 @@ impl FromStr for Scheduled {
             let date_str = captures
                 .get(1)
                 .map(|m| m.as_str())
-                .ok_or(ParseScheduledError)?;
+                .ok_or(ParseScheduledError::Generic)?;
             let day_str = captures
                 .get(2)
                 .map(|m| m.as_str())
-                .ok_or(ParseScheduledError)?;
+                .ok_or(ParseScheduledError::Generic)?;
             let time = captures
                 .get(3)
                 .map(|m| m.as_str())
@@ -45,14 +34,13 @@ impl FromStr for Scheduled {
                 .and_then(|r| ScheduledRepeater::from_str(r).ok());
 
             Ok(Self {
-                date: NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
-                    .map_err(|_| ParseScheduledError)?,
-                day: day_str.parse().map_err(|_| ParseScheduledError)?,
+                date: NaiveDate::parse_from_str(date_str, "%Y-%m-%d")?,
+                day: day_str.parse()?,
                 time,
                 repeater,
             })
         } else {
-            Err(ParseScheduledError)
+            Err(ParseScheduledError::Generic)
         }
     }
 }

@@ -11,7 +11,7 @@ pub fn preprocess_logseq_markdown(md: &str) -> String {
 
     while let Some(line) = lines.peek() {
         if let Some((_, [key, value])) = PROPERTY_REGEX.captures(line).map(|caps| caps.extract()) {
-            frontmatter.push(format!("{key}: {value}"));
+            frontmatter.push(format!("{key}: '{value}'"));
             lines.next();
         } else {
             break;

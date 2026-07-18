@@ -1,3 +1,4 @@
+use crate::{consts::LOGSEQ_TOKENS, task::Task};
 use comrak::{
     Node,
     nodes::{AstNode, NodeValue},
@@ -43,12 +44,6 @@ impl<'a> From<Node<'a>> for Block<'a> {
 }
 
 impl Block<'_> {
-    #[must_use]
-    pub fn plaintext(&self) -> String {
-        let mut text = String::new();
-        extract_text(self.inner, &mut text);
-        text
-    }
     fn edit_text_recursive<F>(node: Node<'_>, callback: &mut F)
     where
         F: FnMut(String) -> String,
@@ -64,10 +59,34 @@ impl Block<'_> {
             Self::edit_text_recursive(child, callback);
         }
     }
+    #[must_use]
+    pub fn text(&self) -> String {
+        let mut text = String::new();
+        extract_text(self.inner, &mut text);
+        text
+    }
+    // TODO: Better way to implement this?
+    #[must_use]
+    pub fn plain(&self) -> String {
+        let mut text = String::new();
+        extract_text(self.inner, &mut text);
+
+        if let Some(task) = self.task() {
+            task.text
+        } else {
+            text.lines()
+                .filter(|line| LOGSEQ_TOKENS.iter().any(|tok| !line.contains(tok)))
+                .collect()
+        }
+    }
     pub fn edit_text<F>(&self, callback: &mut F)
     where
         F: FnMut(String) -> String,
     {
         Self::edit_text_recursive(self.inner, callback);
+    }
+    #[must_use]
+    pub fn task(&self) -> Option<Task> {
+        self.text().parse().ok()
     }
 }

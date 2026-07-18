@@ -1,3 +1,4 @@
+use crate::error::ParseRepeaterErr;
 use humantime::Duration as HumanDuration;
 use serde::{Deserialize, Serialize};
 use std::{str::FromStr, time::Duration};
@@ -17,9 +18,6 @@ pub struct ScheduledRepeater {
     pub rule: RepeatFrom,
     pub duration: Duration,
 }
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct ParseRepeaterErr;
 
 impl FromStr for ScheduledRepeater {
     type Err = ParseRepeaterErr;

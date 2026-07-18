@@ -1,6 +1,6 @@
+use crate::error::TaskMarkerError;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use thiserror::Error;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum TaskMarker {
@@ -9,12 +9,6 @@ pub enum TaskMarker {
     Done,
     Cancelled,
     Waiting,
-}
-
-#[derive(Error, Debug)]
-pub enum TaskMarkerError {
-    #[error("Invalid task marker str!")]
-    InvalidMarker,
 }
 
 impl FromStr for TaskMarker {

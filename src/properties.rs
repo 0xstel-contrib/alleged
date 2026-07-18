@@ -38,8 +38,10 @@ impl From<RawProperties> for Properties {
             .alias
             .map(|c| c.split(',').map(String::from).collect())
             .unwrap_or_default();
-        // TODO: Handle filters
-        let filters = Vec::new();
+        let filters = raw
+            .filters
+            .map(|c| c.split(',').map(String::from).collect())
+            .unwrap_or_default();
 
         Self {
             tags,

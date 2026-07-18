@@ -23,3 +23,39 @@ pub enum GraphError {
     #[error("Text formatting failed: {0}")]
     Fmt(#[from] fmt::Error),
 }
+
+#[derive(Error, Debug)]
+pub enum TaskMarkerError {
+    #[error("Invalid task marker str!")]
+    InvalidMarker,
+}
+
+#[derive(Error, Debug)]
+pub enum TaskError {
+    #[error("The given line was not a task!")]
+    NotATask,
+    #[error("The given list item was empty!")]
+    EmptyItem,
+    #[error("Got an error when processing the task marker: {0}")]
+    TaskMarker(#[from] TaskMarkerError),
+}
+
+#[derive(Error, Debug)]
+#[error("Failed to parse the repetition rule string!")]
+pub struct ParseRepeaterErr;
+
+#[derive(Error, Debug)]
+pub enum TaskPriorityError {
+    #[error("Invalid task priority!")]
+    InvalidPriority,
+}
+
+#[derive(Error, Debug)]
+pub enum ParseScheduledError {
+    #[error("Failed to parse the `SCHEDULED` data!")]
+    Generic,
+    #[error("Failed to parse the date string!")]
+    ChronoParse(#[from] chrono::ParseError),
+    #[error("Failed to parse the weekday!")]
+    ChronoParseWeekday(#[from] chrono::ParseWeekdayError),
+}

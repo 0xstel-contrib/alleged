@@ -1,4 +1,6 @@
 mod kind;
+pub use kind::*;
+
 use crate::{
     block::Block,
     consts::GRAPH_LAYOUT,
@@ -8,7 +10,6 @@ use crate::{
 };
 use comrak::{Arena, Node, Options, format_commonmark, nodes::NodeValue, parse_document};
 use gray_matter::{Matter, ParsedEntity, engine::YAML};
-pub use kind::*;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -38,25 +39,22 @@ impl<'a> GraphEntry<'a> {
 
         None
     }
-    pub fn buffer(&mut self) -> Result<String, GraphError> {
-        if self.buffer.is_none() {
-            self.buffer = Some(fs::read_to_string(self.path())?);
-        }
-
-        Ok(self.buffer.clone().unwrap())
-    }
-    pub fn buffer_mut(&mut self) -> Result<&mut String, GraphError> {
-        if self.buffer.is_none() {
-            self.buffer = Some(fs::read_to_string(self.path())?);
-        }
-
-        Ok(self.buffer.as_mut().unwrap())
-    }
-    fn buffer_preprocessed<F>(&mut self, preprocessor: F) -> Result<String, GraphError>
+    fn buffer_preprocessed<F>(&mut self, preprocessor: F) -> String
     where
         F: Fn(&str) -> String,
     {
-        Ok(preprocessor(&self.buffer()?))
+        preprocessor(&self.buffer())
+    }
+    pub fn buffer(&mut self) -> String {
+        let path = self.path();
+        self.buffer
+            .get_or_insert_with(|| fs::read_to_string(path).unwrap_or_default())
+            .clone()
+    }
+    pub fn buffer_mut(&mut self) -> &mut String {
+        let path = self.path();
+        self.buffer
+            .get_or_insert_with(|| fs::read_to_string(path).unwrap_or_default())
     }
     pub fn new(path: PathBuf, comrak_options: &'a Options<'a>) -> Result<Self, GraphError> {
         let kind = EntryKind::try_from(path.as_path())?;
@@ -76,14 +74,14 @@ impl<'a> GraphEntry<'a> {
     }
     pub fn properties(&mut self) -> Result<Option<Properties>, GraphError> {
         let arena = Arena::new();
-        let buffer = self.buffer_preprocessed(preprocess_logseq_markdown)?;
+        let buffer = self.buffer_preprocessed(preprocess_logseq_markdown);
         let root = parse_document(&arena, &buffer, self.comrak_options);
 
         let maybe_properties = if let Some(first_child) = root.first_child()
             && let NodeValue::FrontMatter(ref frontmatter_str) = first_child.data().value
         {
             let parser: Matter<YAML> = Matter::new();
-            let entity: ParsedEntity<RawProperties> = parser.parse(frontmatter_str)?;
+            let entity: ParsedEntity<RawProperties> = parser.parse(frontmatter_str.trim())?;
 
             Some(entity.data.unwrap_or_default().into())
         } else {
@@ -95,8 +93,8 @@ impl<'a> GraphEntry<'a> {
     pub fn blocks<'b>(
         &mut self,
         arena: &'b Arena<'b>,
-    ) -> Result<Document<'b, impl Iterator<Item = Block<'b>>>, GraphError> {
-        let buffer = self.buffer_preprocessed(preprocess_logseq_markdown)?;
+    ) -> Document<'b, impl Iterator<Item = Block<'b>>> {
+        let buffer = self.buffer_preprocessed(preprocess_logseq_markdown);
         let root = parse_document(arena, &buffer, self.comrak_options);
 
         if let Some(first_child) = root.first_child()
@@ -116,9 +114,9 @@ impl<'a> GraphEntry<'a> {
             })
             .map(Block::from);
 
-        Ok(Document(root, blocks))
+        Document(root, blocks)
     }
-    pub fn to_logseq_markdown(&mut self, root: Node<'_>) -> Result<String, GraphError> {
+    pub fn update_buffer(&mut self, root: Node<'_>) -> Result<String, GraphError> {
         let mut markdown = String::new();
 
         format_commonmark(root, self.comrak_options, &mut markdown)?;
@@ -126,6 +124,8 @@ impl<'a> GraphEntry<'a> {
         if let Some(properties) = self.properties()? {
             markdown.insert_str(0, &properties.to_string());
         }
+
+        self.buffer = Some(markdown.clone());
 
         Ok(markdown)
     }
