@@ -44,6 +44,7 @@ impl FromStr for ScheduledRepeater {
         };
 
         let (rule, duration_chars) = maybe_repeater?;
+        // HACK: Logseq's `m` means "minute" -- to `humantime`, `m` is month. We manually fix that :)
         let duration_str: String = duration_chars
             .map(|c| if c == 'm' { 'M' } else { c })
             .collect();

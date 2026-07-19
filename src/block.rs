@@ -38,6 +38,7 @@ impl<'a> From<Node<'a>> for Block<'a> {
 
         Self {
             inner: node,
+            // FIXME: Better way to ensure depth starts at 0?
             depth: depth.saturating_sub(1),
         }
     }
@@ -71,9 +72,11 @@ impl Block<'_> {
         let mut text = String::new();
         extract_text(self.inner, &mut text);
 
+        // FIXME: Specifically, this is icky...
         if let Some(task) = self.task() {
             task.text
         } else {
+            // FIXME: And this.
             text.lines()
                 .filter(|line| LOGSEQ_TOKENS.iter().any(|tok| !line.contains(tok)))
                 .collect()

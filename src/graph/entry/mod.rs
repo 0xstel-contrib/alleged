@@ -74,12 +74,6 @@ impl<'a> GraphEntry<'a> {
         let buffer = self.buffer().content;
         let root = parse_document(arena, &buffer, self.comrak_options);
 
-        if let Some(first_child) = root.first_child()
-            && matches!(first_child.data().value, NodeValue::FrontMatter(_))
-        {
-            first_child.detach();
-        }
-
         let blocks = root
             .descendants()
             .filter_map(|node| {
