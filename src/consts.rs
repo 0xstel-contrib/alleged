@@ -1,5 +1,8 @@
 use comrak::options::{Extension, Options, Render};
+#[cfg(feature = "regex")]
 use regex::Regex;
+#[cfg(feature = "regex-lite")]
+use regex_lite::Regex;
 use std::sync::LazyLock;
 
 pub const GRAPH_LAYOUT: [&str; 3] = ["journals", "logseq", "pages"];
