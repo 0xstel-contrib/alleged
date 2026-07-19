@@ -57,7 +57,7 @@ impl FromStr for EntryBuffer {
 impl fmt::Display for EntryBuffer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(properties) = &self.properties {
-            writeln!(f, "{properties}\n\n")?;
+            writeln!(f, "{properties}")?;
         }
 
         writeln!(f, "{}", self.content)
@@ -86,7 +86,7 @@ impl EntryBuffer {
             .join("\n");
 
         if prepend {
-            self.content.insert_str(0, &format!("{new_block}\n"));
+            self.content.insert_str(0, &new_block);
         } else {
             write!(self.content, "\n{new_block}")?;
         }
