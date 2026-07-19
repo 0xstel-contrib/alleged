@@ -4,7 +4,7 @@ use crate::{
     task::ScheduledRepeater,
 };
 use std::str::FromStr;
-use time::{Date, Time, Weekday};
+use time::{Date, Time, Weekday, error::InvalidVariant};
 
 #[derive(Debug)]
 pub struct Scheduled {
@@ -12,6 +12,20 @@ pub struct Scheduled {
     pub day: Weekday,
     pub time: Option<Time>,
     pub repeater: Option<ScheduledRepeater>,
+}
+
+// HACK: `time`'s `Weekday::from_str` doesn't support shortened weekdays 😮‍💨
+fn custom_parse_weekday(s: &str) -> Result<Weekday, InvalidVariant> {
+    match s.trim().to_lowercase().as_str() {
+        "mon" | "monday" => Ok(Weekday::Monday),
+        "tue" | "tuesday" => Ok(Weekday::Tuesday),
+        "wed" | "wednesday" => Ok(Weekday::Wednesday),
+        "thu" | "thursday" => Ok(Weekday::Thursday),
+        "fri" | "friday" => Ok(Weekday::Friday),
+        "sat" | "saturday" => Ok(Weekday::Saturday),
+        "sun" | "sunday" => Ok(Weekday::Sunday),
+        _ => Err(InvalidVariant),
+    }
 }
 
 impl FromStr for Scheduled {
@@ -38,7 +52,7 @@ impl FromStr for Scheduled {
 
             Ok(Self {
                 date: Date::parse(date_str, DATE_FORMAT)?,
-                day: day_str.parse()?,
+                day: custom_parse_weekday(day_str)?,
                 time,
                 repeater,
             })

@@ -13,9 +13,9 @@ impl FromStr for TaskPriority {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "[#A]" => Ok(TaskPriority::A),
-            "[#B]" => Ok(TaskPriority::B),
-            "[#C]" => Ok(TaskPriority::C),
+            "[#A]" => Ok(Self::A),
+            "[#B]" => Ok(Self::B),
+            "[#C]" => Ok(Self::C),
             _ => Err(TaskPriorityError::InvalidPriority),
         }
     }

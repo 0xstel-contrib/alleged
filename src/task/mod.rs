@@ -31,13 +31,13 @@ impl FromStr for Task {
 
         let marker = parts.next().ok_or(TaskError::EmptyItem)?.parse()?;
 
-        let priority = match parts.clone().next().and_then(|s| s.parse().ok()) {
-            Some(priority) => {
+        let priority = parts
+            .clone()
+            .next()
+            .and_then(|s| s.parse().ok())
+            .inspect(|_| {
                 parts.next();
-                Some(priority)
-            }
-            None => None,
-        };
+            });
 
         let text = parts
             .collect::<Vec<_>>()

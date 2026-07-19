@@ -26,14 +26,14 @@ impl FromStr for ScheduledRepeater {
 
         let maybe_repeater = match chars.next().ok_or(ParseRepeaterErr)? {
             '.' => {
-                if let Some('+') = chars.next() {
+                if chars.next() == Some('+') {
                     Ok((RepeatFrom::Completion, chars))
                 } else {
                     Err(ParseRepeaterErr)
                 }
             }
             '+' => {
-                if let Some('+') = chars.as_str().chars().next() {
+                if chars.as_str().starts_with('+') {
                     _ = chars.next();
                     Ok((RepeatFrom::PrevScheduledConstrained, chars))
                 } else {

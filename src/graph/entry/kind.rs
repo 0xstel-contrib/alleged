@@ -29,15 +29,15 @@ impl TryFrom<&Path> for EntryKind {
                 let date = Date::parse(
                     &path
                         .file_stem()
-                        .ok_or(GraphError::InvalidPath(path.to_path_buf()))?
+                        .ok_or_else(|| GraphError::InvalidPath(path.to_path_buf()))?
                         .to_string_lossy(),
                     JOURNAL_FORMAT,
                 )?;
-                return Ok(EntryKind::Journal(date));
+                return Ok(Self::Journal(date));
             } else if ancestor.ends_with("pages") {
-                return Ok(EntryKind::Page(
+                return Ok(Self::Page(
                     path.file_stem()
-                        .ok_or(GraphError::InvalidPath(path.to_path_buf()))?
+                        .ok_or_else(|| GraphError::InvalidPath(path.to_path_buf()))?
                         .to_string_lossy()
                         .into(),
                 ));
