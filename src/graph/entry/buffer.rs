@@ -45,7 +45,7 @@ impl FromStr for EntryBuffer {
             }
         }
 
-        let content_lines: Vec<&str> = lines.collect();
+        let content_lines: Vec<&str> = lines.filter(|l| !l.trim().is_empty()).collect();
 
         Ok(Self {
             properties: maybe_properties,
@@ -86,7 +86,7 @@ impl EntryBuffer {
             .join("\n");
 
         if prepend {
-            self.content.insert_str(0, &new_block);
+            self.content.insert_str(0, &format!("{new_block}\n"));
         } else {
             write!(self.content, "\n{new_block}")?;
         }
