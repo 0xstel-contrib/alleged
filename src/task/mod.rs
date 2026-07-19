@@ -8,10 +8,9 @@ pub use repeater::*;
 pub use scheduled::*;
 
 use crate::{consts::SCHEDULED_DELIM, error::TaskError};
-use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Task {
     pub completed: bool,
     pub marker: TaskMarker,

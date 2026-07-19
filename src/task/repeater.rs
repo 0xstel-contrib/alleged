@@ -1,9 +1,8 @@
 use crate::error::ParseRepeaterErr;
 use humantime::Duration as HumanDuration;
-use serde::{Deserialize, Serialize};
 use std::{str::FromStr, time::Duration};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub enum RepeatFrom {
     // ".+1d"
     Completion,
@@ -13,7 +12,7 @@ pub enum RepeatFrom {
     PrevScheduledConstrained,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct ScheduledRepeater {
     pub rule: RepeatFrom,
     pub duration: Duration,

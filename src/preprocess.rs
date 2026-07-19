@@ -1,9 +1,4 @@
-use crate::consts::FRONTMATTER_DELIM;
-use regex::Regex;
-use std::sync::LazyLock;
-
-static PROPERTY_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^(?P<key>[a-zA-Z0-9_-]+)::\s+(?P<value>.*)$").unwrap());
+use crate::consts::{FRONTMATTER_DELIM, PROPERTY_REGEX};
 
 pub fn preprocess_logseq_markdown(md: &str) -> String {
     let mut lines = md.lines().peekable();

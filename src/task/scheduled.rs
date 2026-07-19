@@ -1,9 +1,8 @@
 use crate::{consts::SCHEDULED_REGEX, error::ParseScheduledError, task::ScheduledRepeater};
 use chrono::{NaiveDate, NaiveTime, Weekday};
-use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Scheduled {
     pub date: NaiveDate,
     pub day: Weekday,

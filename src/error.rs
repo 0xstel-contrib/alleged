@@ -18,8 +18,6 @@ pub enum GraphError {
     InvalidPath(PathBuf),
     #[error("Got an I/O error: {0}")]
     IO(#[from] io::Error),
-    #[error("Failed to parse YAML: {0}")]
-    GrayMatter(#[from] gray_matter::Error),
     #[error("Text formatting failed: {0}")]
     Fmt(#[from] fmt::Error),
 }
@@ -59,3 +57,6 @@ pub enum ParseScheduledError {
     #[error("Failed to parse the weekday!")]
     ChronoParseWeekday(#[from] chrono::ParseWeekdayError),
 }
+
+#[derive(Error, Debug)]
+pub enum EntryBufferError {}

@@ -1,22 +1,7 @@
-use serde::{Deserialize, Serialize};
+use rustc_hash::FxHashMap;
 use std::fmt;
 
-#[derive(Serialize, Deserialize, Default, Debug)]
-pub(crate) struct RawProperties {
-    icon: Option<String>,
-    title: Option<String>,
-    tags: Option<String>,
-    template: Option<String>,
-    #[serde(rename = "template-including-parent")]
-    template_including_parent: Option<bool>,
-    alias: Option<String>,
-    filters: Option<String>,
-    public: Option<bool>,
-    #[serde(rename = "exclude-from-graph-view")]
-    exclude_from_graph_view: Option<bool>,
-}
-
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 #[allow(dead_code)]
 pub struct Properties {
     pub icon: Option<String>,
@@ -28,33 +13,7 @@ pub struct Properties {
     pub filters: Vec<String>,
     pub public: bool,
     pub exclude_from_graph_view: bool,
-}
-
-impl From<RawProperties> for Properties {
-    fn from(raw: RawProperties) -> Self {
-        // TODO: Handle tags
-        let tags = Vec::new();
-        let alias = raw
-            .alias
-            .map(|c| c.split(',').map(String::from).collect())
-            .unwrap_or_default();
-        let filters = raw
-            .filters
-            .map(|c| c.split(',').map(String::from).collect())
-            .unwrap_or_default();
-
-        Self {
-            tags,
-            alias,
-            filters,
-            icon: raw.icon,
-            title: raw.title,
-            template: raw.template,
-            template_including_parent: raw.template_including_parent.unwrap_or(false),
-            public: raw.public.unwrap_or(false),
-            exclude_from_graph_view: raw.exclude_from_graph_view.unwrap_or(false),
-        }
-    }
+    pub custom: FxHashMap<String, String>,
 }
 
 impl fmt::Display for Properties {
@@ -85,6 +44,10 @@ impl fmt::Display for Properties {
         }
         if self.exclude_from_graph_view {
             writeln!(f, "exclude-from-graph-view:: true")?;
+        }
+
+        for (key, value) in &self.custom {
+            writeln!(f, "{key}:: {value}")?;
         }
 
         Ok(())

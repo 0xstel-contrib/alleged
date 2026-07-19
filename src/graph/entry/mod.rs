@@ -1,18 +1,14 @@
+mod buffer;
 mod kind;
+pub use buffer::*;
 pub use kind::*;
 
-use crate::{
-    block::Block,
-    consts::GRAPH_LAYOUT,
-    error::GraphError,
-    preprocess::preprocess_logseq_markdown,
-    properties::{Properties, RawProperties},
-};
+use crate::{block::Block, consts::GRAPH_LAYOUT, error::GraphError, properties::Properties};
 use comrak::{Arena, Node, Options, format_commonmark, nodes::NodeValue, parse_document};
-use gray_matter::{Matter, ParsedEntity, engine::YAML};
 use std::{
-    fs,
+    fmt, fs,
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
 pub struct Document<'a, I>(pub Node<'a>, pub I);
@@ -21,7 +17,7 @@ pub struct Document<'a, I>(pub Node<'a>, pub I);
 pub struct GraphEntry<'a> {
     pub kind: EntryKind,
     comrak_options: &'a Options<'a>,
-    buffer: Option<String>,
+    buffer: Option<EntryBuffer>,
     graph: PathBuf,
 }
 
@@ -39,22 +35,18 @@ impl<'a> GraphEntry<'a> {
 
         None
     }
-    fn buffer_preprocessed<F>(&mut self, preprocessor: F) -> String
-    where
-        F: Fn(&str) -> String,
-    {
-        preprocessor(&self.buffer())
-    }
-    pub fn buffer(&mut self) -> String {
+    pub fn buffer(&mut self) -> EntryBuffer {
         let path = self.path();
-        self.buffer
-            .get_or_insert_with(|| fs::read_to_string(path).unwrap_or_default())
-            .clone()
+        let buffer = self.buffer.get_or_insert_with(|| {
+            EntryBuffer::from_str(&fs::read_to_string(path).unwrap_or_default()).unwrap_or_default()
+        });
+        buffer.clone()
     }
-    pub fn buffer_mut(&mut self) -> &mut String {
+    fn buffer_mut(&mut self) -> &mut EntryBuffer {
         let path = self.path();
-        self.buffer
-            .get_or_insert_with(|| fs::read_to_string(path).unwrap_or_default())
+        self.buffer.get_or_insert_with(|| {
+            EntryBuffer::from_str(&fs::read_to_string(path).unwrap_or_default()).unwrap_or_default()
+        })
     }
     pub fn new(path: PathBuf, comrak_options: &'a Options<'a>) -> Result<Self, GraphError> {
         let kind = EntryKind::try_from(path.as_path())?;
@@ -72,29 +64,14 @@ impl<'a> GraphEntry<'a> {
     pub fn path(&self) -> PathBuf {
         self.graph.join(self.kind.as_relative_path())
     }
-    pub fn properties(&mut self) -> Result<Option<Properties>, GraphError> {
-        let arena = Arena::new();
-        let buffer = self.buffer_preprocessed(preprocess_logseq_markdown);
-        let root = parse_document(&arena, &buffer, self.comrak_options);
-
-        let maybe_properties = if let Some(first_child) = root.first_child()
-            && let NodeValue::FrontMatter(ref frontmatter_str) = first_child.data().value
-        {
-            let parser: Matter<YAML> = Matter::new();
-            let entity: ParsedEntity<RawProperties> = parser.parse(frontmatter_str.trim())?;
-
-            Some(entity.data.unwrap_or_default().into())
-        } else {
-            None
-        };
-
-        Ok(maybe_properties)
+    pub fn properties(&mut self) -> Option<Properties> {
+        self.buffer().properties
     }
     pub fn blocks<'b>(
         &mut self,
         arena: &'b Arena<'b>,
     ) -> Document<'b, impl Iterator<Item = Block<'b>>> {
-        let buffer = self.buffer_preprocessed(preprocess_logseq_markdown);
+        let buffer = self.buffer().content;
         let root = parse_document(arena, &buffer, self.comrak_options);
 
         if let Some(first_child) = root.first_child()
@@ -117,16 +94,17 @@ impl<'a> GraphEntry<'a> {
         Document(root, blocks)
     }
     pub fn update_buffer(&mut self, root: Node<'_>) -> Result<String, GraphError> {
-        let mut markdown = String::new();
+        let comrak_options = self.comrak_options;
+        let buffer = self.buffer_mut();
 
-        format_commonmark(root, self.comrak_options, &mut markdown)?;
+        format_commonmark(root, comrak_options, &mut buffer.content)?;
 
-        if let Some(properties) = self.properties()? {
-            markdown.insert_str(0, &properties.to_string());
-        }
-
-        self.buffer = Some(markdown.clone());
-
-        Ok(markdown)
+        Ok(buffer.content.clone())
+    }
+    pub fn prepend_block(&mut self, content: &str, depth: usize) -> fmt::Result {
+        self.buffer_mut().prepend_block(content, depth)
+    }
+    pub fn append_block(&mut self, content: &str, depth: usize) -> fmt::Result {
+        self.buffer_mut().append_block(content, depth)
     }
 }

@@ -1,4 +1,4 @@
-use crate::{consts::DEFAULT_COMRAK_OPTIONS, error::GraphBuilderError, graph::Graph};
+use crate::{consts::COMRAK_OPTIONS, error::GraphBuilderError, graph::Graph};
 use comrak::Options;
 use std::path::PathBuf;
 
@@ -27,9 +27,7 @@ impl GraphBuilder {
     }
     pub fn build(self) -> Result<Graph, GraphBuilderError> {
         let root = self.root.ok_or(GraphBuilderError::UndefinedRootDirectory)?;
-        let comrak_options = self
-            .comrak_options
-            .unwrap_or(DEFAULT_COMRAK_OPTIONS.clone());
+        let comrak_options = self.comrak_options.unwrap_or(COMRAK_OPTIONS.clone());
 
         Ok(Graph {
             comrak_options,

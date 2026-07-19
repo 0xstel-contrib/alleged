@@ -52,12 +52,15 @@ impl Graph {
         let relative_path: PathBuf = entry.as_relative_path().into();
         GraphEntry::new(self.root.join(relative_path), &self.comrak_options)
     }
-    pub fn journal(&self, date: NaiveDate) -> Result<GraphEntry<'_>, GraphError> {
-        self.entry(&EntryKind::Journal(date))
+    pub fn journal<D>(&self, date: D) -> Result<GraphEntry<'_>, GraphError>
+    where
+        D: Into<NaiveDate>,
+    {
+        self.entry(&EntryKind::Journal(date.into()))
     }
     pub fn page(&self, key: &str) -> Result<GraphEntry<'_>, GraphError> {
         for mut entry in self.entries() {
-            if let Some(props) = entry.properties()?
+            if let Some(props) = entry.properties()
                 && props.alias.iter().any(|a| a == key)
             {
                 return Ok(entry);
@@ -67,7 +70,7 @@ impl Graph {
         self.entry(&EntryKind::Page(key.to_string()))
     }
     pub fn save(&self, entry: &mut GraphEntry<'_>) -> Result<(), GraphError> {
-        fs::write(entry.path(), entry.buffer().as_bytes())?;
+        fs::write(entry.path(), entry.buffer().to_string().as_bytes())?;
 
         Ok(())
     }

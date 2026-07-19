@@ -1,8 +1,7 @@
 use crate::error::TaskMarkerError;
-use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub enum TaskMarker {
     ToDo,
     Doing,
