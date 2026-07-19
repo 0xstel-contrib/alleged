@@ -7,12 +7,17 @@ authors = ["stel <stel@national.shitposting.agency>"]
 edition = "2024"
 license = "0BSD"
 
+[workspace.lints.clippy]
+cargo = "warn"
+nursery = "warn"
+
 [package]
 name = "alleged-lib"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+lints.workspace = true
 
 [features]
 default = ["regex-lite"]
