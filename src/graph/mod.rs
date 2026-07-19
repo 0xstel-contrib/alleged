@@ -4,7 +4,7 @@ pub use builder::*;
 pub use entry::*;
 
 use crate::error::GraphError;
-use chrono::NaiveDate;
+use chrono::{Local, NaiveDate};
 use comrak::Options;
 use std::{ffi::OsStr, fs, path::PathBuf};
 use walkdir::{DirEntry, WalkDir};
@@ -57,6 +57,9 @@ impl Graph {
         D: Into<NaiveDate>,
     {
         self.entry(&EntryKind::Journal(date.into()))
+    }
+    pub fn today(&self) -> Result<GraphEntry<'_>, GraphError> {
+        self.journal(Local::now().date_naive())
     }
     pub fn page(&self, key: &str) -> Result<GraphEntry<'_>, GraphError> {
         for mut entry in self.entries() {
