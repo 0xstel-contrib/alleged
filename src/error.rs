@@ -1,6 +1,6 @@
-use chrono::ParseError;
 use std::{fmt, io, path::PathBuf};
 use thiserror::Error;
+use time::error::{InvalidVariant, Parse};
 
 #[derive(Error, Debug)]
 pub enum GraphBuilderError {
@@ -12,14 +12,14 @@ pub enum GraphBuilderError {
 
 #[derive(Error, Debug)]
 pub enum GraphError {
-    #[error("Chrono couldn't parse the string: {0}")]
-    Chrono(#[from] ParseError),
     #[error("Invalid Logseq graph entry path: {0}")]
     InvalidPath(PathBuf),
     #[error("Got an I/O error: {0}")]
     IO(#[from] io::Error),
     #[error("Text formatting failed: {0}")]
     Fmt(#[from] fmt::Error),
+    #[error("Failed to parse the date str: {0}")]
+    Date(#[from] Parse),
 }
 
 #[derive(Error, Debug)]
@@ -52,10 +52,10 @@ pub enum TaskPriorityError {
 pub enum ParseScheduledError {
     #[error("Failed to parse the `SCHEDULED` data!")]
     Generic,
-    #[error("Failed to parse the date string!")]
-    ChronoParse(#[from] chrono::ParseError),
-    #[error("Failed to parse the weekday!")]
-    ChronoParseWeekday(#[from] chrono::ParseWeekdayError),
+    #[error("Failed to parse the date str: {0}")]
+    Date(#[from] Parse),
+    #[error("Failed to parse the time str: {0}")]
+    Time(#[from] InvalidVariant),
 }
 
 #[derive(Error, Debug)]

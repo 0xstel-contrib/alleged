@@ -1,12 +1,16 @@
-use crate::{consts::SCHEDULED_REGEX, error::ParseScheduledError, task::ScheduledRepeater};
-use chrono::{NaiveDate, NaiveTime, Weekday};
+use crate::{
+    consts::{DATE_FORMAT, SCHEDULED_REGEX, TIME_FORMAT},
+    error::ParseScheduledError,
+    task::ScheduledRepeater,
+};
 use std::str::FromStr;
+use time::{Date, Time, Weekday};
 
 #[derive(Debug)]
 pub struct Scheduled {
-    pub date: NaiveDate,
+    pub date: Date,
     pub day: Weekday,
-    pub time: Option<NaiveTime>,
+    pub time: Option<Time>,
     pub repeater: Option<ScheduledRepeater>,
 }
 
@@ -26,14 +30,14 @@ impl FromStr for Scheduled {
             let time = captures
                 .get(3)
                 .map(|m| m.as_str())
-                .and_then(|t| NaiveTime::parse_from_str(t, "%H:%M").ok());
+                .and_then(|t| Time::parse(t, TIME_FORMAT).ok());
             let repeater = captures
                 .get(4)
                 .map(|m| m.as_str())
                 .and_then(|r| ScheduledRepeater::from_str(r).ok());
 
             Ok(Self {
-                date: NaiveDate::parse_from_str(date_str, "%Y-%m-%d")?,
+                date: Date::parse(date_str, DATE_FORMAT)?,
                 day: day_str.parse()?,
                 time,
                 repeater,

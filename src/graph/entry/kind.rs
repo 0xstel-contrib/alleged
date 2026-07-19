@@ -1,10 +1,10 @@
-use crate::error::GraphError;
-use chrono::NaiveDate;
+use crate::{consts::JOURNAL_FORMAT, error::GraphError};
 use std::path::Path;
+use time::Date;
 
 #[derive(Debug)]
 pub enum EntryKind {
-    Journal(NaiveDate),
+    Journal(Date),
     Page(String),
 }
 
@@ -12,7 +12,9 @@ impl EntryKind {
     #[must_use]
     pub fn as_relative_path(&self) -> String {
         match self {
-            Self::Journal(date) => format!("journals/{}.md", date.format("%Y_%m_%d")),
+            // NOTE: This will never panic, because `JOURNAL_FORMAT` is guaranteed to be valid at compile time.
+            #[allow(clippy::unwrap_used)]
+            Self::Journal(date) => format!("journals/{}.md", date.format(JOURNAL_FORMAT).unwrap()),
             Self::Page(title) => format!("pages/{title}.md"),
         }
     }
@@ -24,12 +26,12 @@ impl TryFrom<&Path> for EntryKind {
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
         for ancestor in path.ancestors() {
             if ancestor.ends_with("journals") {
-                let date = NaiveDate::parse_from_str(
+                let date = Date::parse(
                     &path
                         .file_stem()
                         .ok_or(GraphError::InvalidPath(path.to_path_buf()))?
                         .to_string_lossy(),
-                    "%Y_%m_%d",
+                    JOURNAL_FORMAT,
                 )?;
                 return Ok(EntryKind::Journal(date));
             } else if ancestor.ends_with("pages") {

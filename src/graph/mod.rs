@@ -4,9 +4,9 @@ pub use builder::*;
 pub use entry::*;
 
 use crate::error::GraphError;
-use chrono::{Local, NaiveDate};
 use comrak::Options;
 use std::{ffi::OsStr, fs, path::PathBuf};
+use time::{Date, Timestamp};
 use walkdir::{DirEntry, WalkDir};
 
 pub struct Graph {
@@ -54,12 +54,12 @@ impl Graph {
     }
     pub fn journal<D>(&self, date: D) -> Result<GraphEntry<'_>, GraphError>
     where
-        D: Into<NaiveDate>,
+        D: Into<Date>,
     {
         self.entry(&EntryKind::Journal(date.into()))
     }
     pub fn today(&self) -> Result<GraphEntry<'_>, GraphError> {
-        self.journal(Local::now().date_naive())
+        self.journal(Timestamp::now().date())
     }
     pub fn page(&self, key: &str) -> Result<GraphEntry<'_>, GraphError> {
         for mut entry in self.entries() {
