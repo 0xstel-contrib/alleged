@@ -14,22 +14,18 @@ pub static SCHEDULED_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         r"SCHEDULED:\s*<(\d{4}-\d{2}-\d{2})\s+([A-Za-z]{3})(?:\s+(\d{1,2}:\d{2}))?(?:\s+([\.\+]*\+\d+[ymwdh]))?>$"
     ).unwrap()
 });
-pub static COMRAK_OPTIONS: LazyLock<Options<'static>> = LazyLock::new(|| {
-    let extension = Extension::builder()
-        .strikethrough(true)
-        .tasklist(true)
-        .footnotes(true)
-        .autolink(true)
-        .underline(true)
-        .front_matter_delimiter(FRONTMATTER_DELIM.to_string())
-        .build();
-    let render = Render::builder()
-        .experimental_minimize_commonmark(true)
-        .build();
-
-    Options {
-        extension,
-        render,
+pub static COMRAK_OPTIONS: LazyLock<Options<'static>> = LazyLock::new(|| Options {
+    extension: Extension {
+        strikethrough: true,
+        tasklist: true,
+        footnotes: true,
+        autolink: true,
+        underline: true,
         ..Default::default()
-    }
+    },
+    render: Render {
+        experimental_minimize_commonmark: true,
+        ..Default::default()
+    },
+    ..Default::default()
 });
