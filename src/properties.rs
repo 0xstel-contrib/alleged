@@ -1,8 +1,10 @@
 use rustc_hash::FxHashMap;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Default, Debug, Clone)]
-#[allow(dead_code)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Properties {
     pub icon: Option<String>,
     pub title: Option<String>,

@@ -1,7 +1,10 @@
 use crate::error::TaskMarkerError;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TaskMarker {
     ToDo,
     Doing,

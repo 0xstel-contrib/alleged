@@ -1,8 +1,11 @@
 use crate::error::ParseRepeaterErr;
 use humantime::{Duration as HumanDuration, format_duration};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr, time::Duration};
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum RepeatFrom {
     // ".+1d"
     Completion,
@@ -23,6 +26,7 @@ impl fmt::Display for RepeatFrom {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ScheduledRepeater {
     pub rule: RepeatFrom,
     pub duration: Duration,

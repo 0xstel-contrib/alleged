@@ -1,8 +1,11 @@
 use crate::{consts::JOURNAL_FORMAT, error::GraphError};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use time::Date;
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum EntryKind {
     Journal(Date),
     Page(String),

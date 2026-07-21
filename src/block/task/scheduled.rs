@@ -3,10 +3,13 @@ use crate::{
     consts::{DATE_FORMAT, SCHEDULED_DELIM, SCHEDULED_REGEX, TIME_FORMAT},
     error::ParseScheduledError,
 };
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 use time::{Date, Time, Weekday, error::InvalidVariant};
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Scheduled {
     pub date: Date,
     pub day: Weekday,
