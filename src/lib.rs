@@ -1,4 +1,5 @@
 #![warn(clippy::unwrap_used)]
+#![doc = include_str!("../README.md")]
 
 /// In [Logseq](https://logseq.com) (and other outliners), each bullet is a "block." For our purposes, a block ([`block::Block`]) is either [`block::Text`] or [`block::Task`]
 pub mod block;

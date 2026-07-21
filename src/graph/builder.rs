@@ -1,13 +1,26 @@
-use crate::{consts::COMRAK_OPTIONS, error::GraphBuilderError, graph::Graph};
+use crate::{
+    consts::{COMRAK_OPTIONS, DEFAULT_EXCLUDE},
+    error::GraphBuilderError,
+    graph::Graph,
+};
 use comrak::Options;
 use std::path::PathBuf;
 
-#[derive(Default)]
 /// Helper struct to construct a [`Graph`] object. You only need to define `root`, everything else has defaults :)
 pub struct GraphBuilder {
     comrak_options: Option<Options<'static>>,
     exclude: Vec<String>,
     root: Option<PathBuf>,
+}
+
+impl Default for GraphBuilder {
+    fn default() -> Self {
+        Self {
+            comrak_options: None,
+            exclude: DEFAULT_EXCLUDE.into_iter().map(String::from).collect(),
+            root: None,
+        }
+    }
 }
 
 impl GraphBuilder {
