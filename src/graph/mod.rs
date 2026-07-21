@@ -3,7 +3,7 @@ mod entry;
 pub use builder::*;
 pub use entry::*;
 
-use crate::error::GraphError;
+use crate::error::Alleged;
 use comrak::Options;
 use std::{ffi::OsStr, fs, path::PathBuf};
 use time::{Date, OffsetDateTime};
@@ -48,20 +48,20 @@ impl Graph {
         self.entries()
             .filter(|entry| matches!(entry.kind, EntryKind::Page(_)))
     }
-    fn entry(&self, entry: &EntryKind) -> Result<GraphEntry<'_>, GraphError> {
+    fn entry(&self, entry: &EntryKind) -> Result<GraphEntry<'_>, Alleged> {
         let relative_path: PathBuf = entry.as_relative_path().into();
         GraphEntry::new(self.root.join(relative_path), &self.comrak_options)
     }
-    pub fn journal<D>(&self, date: D) -> Result<GraphEntry<'_>, GraphError>
+    pub fn journal<D>(&self, date: D) -> Result<GraphEntry<'_>, Alleged>
     where
         D: Into<Date>,
     {
         self.entry(&EntryKind::Journal(date.into()))
     }
-    pub fn today(&self) -> Result<GraphEntry<'_>, GraphError> {
+    pub fn today(&self) -> Result<GraphEntry<'_>, Alleged> {
         self.journal(OffsetDateTime::now_local()?.date())
     }
-    pub fn page(&self, key: &str) -> Result<GraphEntry<'_>, GraphError> {
+    pub fn page(&self, key: &str) -> Result<GraphEntry<'_>, Alleged> {
         for mut entry in self.entries() {
             if let Some(props) = entry.properties()
                 && props.alias.iter().any(|a| a == key)
@@ -72,7 +72,7 @@ impl Graph {
 
         self.entry(&EntryKind::Page(key.to_string()))
     }
-    pub fn save(&self, entry: &mut GraphEntry<'_>) -> Result<(), GraphError> {
+    pub fn save(&self, entry: &mut GraphEntry<'_>) -> Result<(), Alleged> {
         fs::write(entry.path(), entry.buffer().to_string().as_bytes())?;
 
         Ok(())

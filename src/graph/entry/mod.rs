@@ -3,7 +3,12 @@ mod kind;
 pub use buffer::*;
 pub use kind::*;
 
-use crate::{block::Block, consts::GRAPH_LAYOUT, error::GraphError, properties::Properties};
+use crate::{
+    block::Block,
+    consts::GRAPH_LAYOUT,
+    error::{Alleged, EntryError},
+    properties::Properties,
+};
 use comrak::{Arena, Node, Options, format_commonmark, parse_document};
 use std::{
     fmt, fs,
@@ -48,10 +53,10 @@ impl<'a> GraphEntry<'a> {
             EntryBuffer::from_str(&fs::read_to_string(path).unwrap_or_default()).unwrap_or_default()
         })
     }
-    pub fn new(path: PathBuf, comrak_options: &'a Options<'a>) -> Result<Self, GraphError> {
+    pub fn new(path: PathBuf, comrak_options: &'a Options<'a>) -> Result<Self, Alleged> {
         let kind = EntryKind::try_from(path.as_path())?;
         let graph =
-            Self::root_from_entry_path(path.clone()).ok_or(GraphError::InvalidPath(path))?;
+            Self::root_from_entry_path(path.clone()).ok_or(EntryError::InvalidPath(path))?;
 
         Ok(Self {
             buffer: None,
@@ -80,7 +85,7 @@ impl<'a> GraphEntry<'a> {
 
         Document(root, blocks)
     }
-    pub fn update_buffer(&mut self, root: Node<'_>) -> Result<String, GraphError> {
+    pub fn update_buffer(&mut self, root: Node<'_>) -> Result<String, Alleged> {
         let comrak_options = self.comrak_options;
         let buffer = self.buffer_mut();
 
