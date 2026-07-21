@@ -4,6 +4,7 @@ use thiserror::Error;
 use time::error::{IndeterminateOffset, InvalidVariant, Parse};
 
 #[derive(Error, Debug)]
+/// The primary error type
 pub enum Alleged {
     #[error("Graph-related failure: {0}")]
     Graph(#[from] GraphError),
@@ -13,6 +14,8 @@ pub enum Alleged {
     Entry(#[from] EntryError),
     #[error("Repeater parsing failed: {0}")]
     ParseRepeater(#[from] ParseRepeaterErr),
+    #[error("`SCHEDULED` parsing failed: {0}")]
+    ParseScheduled(#[from] ParseScheduledError),
     #[error("Got an I/O error: {0}")]
     IO(#[from] io::Error),
     #[error("Got a formatting error: {0}")]
@@ -74,11 +77,5 @@ pub enum TaskPriorityError {
 }
 
 #[derive(Error, Debug)]
-pub enum ParseScheduledError {
-    #[error("Failed to parse the `SCHEDULED` data!")]
-    Generic,
-    #[error("Failed to parse the date str: {0}")]
-    Date(#[from] Parse),
-    #[error("Failed to parse the time str: {0}")]
-    Time(#[from] InvalidVariant),
-}
+#[error("Failed to parse the `SCHEDULED` data!")]
+pub struct ParseScheduledError;

@@ -28,6 +28,7 @@ pub(crate) fn extract_text<'a>(node: &'a AstNode<'a>, text: &mut String) {
 }
 
 #[derive(Debug, Clone)]
+/// A Logseq block -- either text or a task. Each variant is a tuple with the underlying object and the block's depth.
 pub enum Block<'a> {
     Text(Text<'a>, usize),
     Task(Task<'a>, usize),

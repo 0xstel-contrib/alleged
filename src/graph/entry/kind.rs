@@ -9,13 +9,20 @@ use time::Date;
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+/// The kind of Logseq graph entry
 pub enum EntryKind {
+    /// A journal entry with an underlying [`Date`]
     Journal(Date),
+    /// A page with a title
     Page(String),
 }
 
 impl EntryKind {
     #[must_use]
+    /// Turn the entry kind into a path relative to the graph root. Produces "journals/{YYYY-MM-DD}.md" for journals and "pages/{title}.md" for pages
+    ///
+    /// # Panics
+    /// This function will never panic.
     pub fn as_relative_path(&self) -> String {
         match self {
             // NOTE: `JOURNAL_FORMAT` is guaranteed valid @ compile time, so **this will never panic**.

@@ -4,7 +4,9 @@ pub fn is_block(node: Node<'_>) -> bool {
     matches!(node.data().value, NodeValue::Paragraph)
 }
 
+/// Generic functions for any newtype containing a [`Node`]
 pub trait BlockNodeImpl {
+    /// The [`Node`]'s depth
     fn depth(&self) -> usize;
 }
 

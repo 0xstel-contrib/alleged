@@ -15,4 +15,5 @@ fn is_task_block(node: Node<'_>) -> bool {
 }
 
 #[nutype(validate(predicate = is_task_block), derive(Debug, Clone, AsRef))]
+/// A validated [`Node`], guaranteed to be a [`comrak::nodes::NodeValue::Paragraph`] AND have a valid [`TaskMarker`] as the first word of its textual content
 pub struct TaskBlockNode<'a>(Node<'a>);

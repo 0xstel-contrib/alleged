@@ -16,9 +16,13 @@ use std::{
     str::FromStr,
 };
 
+/// Basic wrapper around [`Node`] used by [`GraphEntry::blocks`] to return:
+/// - the document root
+/// - an iterator over that root's blocks, all of which can be mutated
 pub struct Document<'a, I>(pub Node<'a>, pub I);
 
 #[derive(Debug)]
+/// A file/page/entry on a Logseq graph
 pub struct GraphEntry<'a> {
     pub kind: EntryKind,
     comrak_options: &'a Options<'a>,
@@ -40,6 +44,7 @@ impl<'a> GraphEntry<'a> {
 
         None
     }
+    /// Immutable access to the underlying buffer. Requires `&mut self` because it sets the buffer if it's `None`
     pub fn buffer(&mut self) -> EntryBuffer {
         let path = self.path();
         let buffer = self.buffer.get_or_insert_with(|| {
@@ -53,6 +58,10 @@ impl<'a> GraphEntry<'a> {
             EntryBuffer::from_str(&fs::read_to_string(path).unwrap_or_default()).unwrap_or_default()
         })
     }
+    /// Create an entry from the given path and markdown parser options. Doesn't read the file content! Deduces [`EntryKind`] from the path
+    ///
+    /// # Errors
+    /// Throws an error if the given path is not a member of a valid Logseq graph.
     pub fn new(path: PathBuf, comrak_options: &'a Options<'a>) -> Result<Self, Alleged> {
         let kind = EntryKind::try_from(path.as_path())?;
         let graph =
@@ -65,13 +74,16 @@ impl<'a> GraphEntry<'a> {
             graph,
         })
     }
+    /// Returns the entry's full path
     #[must_use]
     pub fn path(&self) -> PathBuf {
         self.graph.join(self.kind.as_relative_path())
     }
+    /// Returns the page's properties
     pub fn properties(&mut self) -> Option<Properties> {
         self.buffer().properties
     }
+    /// Returns a [`Document`] with an iterator over the entry's blocks. Returns a reference to the document root [`Node`], which you need to pass to [`GraphEntry::update_buffer`] if you update the blocks
     pub fn blocks<'b>(
         &mut self,
         arena: &'b Arena<'b>,
@@ -85,6 +97,10 @@ impl<'a> GraphEntry<'a> {
 
         Document(root, blocks)
     }
+    /// Given a node, updates the entry's underlying text buffer. Lets you save any edits to blocks produced by [`GraphEntry::blocks`]
+    ///
+    /// # Errors
+    /// Fails if the root [`Node`] contains invalid structure. Unless you're modifying it by hand, that should be impossible
     pub fn update_buffer(&mut self, root: Node<'_>) -> Result<String, Alleged> {
         let comrak_options = self.comrak_options;
         let buffer = self.buffer_mut();
@@ -94,9 +110,17 @@ impl<'a> GraphEntry<'a> {
 
         Ok(buffer.content.clone())
     }
+    /// Prepend a text block to document with the specified indent
+    ///
+    /// # Errors
+    /// Throws an error if the underlying [`write!`] call fails
     pub fn prepend_block(&mut self, content: &str, depth: usize) -> fmt::Result {
         self.buffer_mut().prepend_block(content, depth)
     }
+    /// Append a text block to document with the specified indent
+    ///
+    /// # Errors
+    /// Throws an error if the underlying [`write!`] call fails
     pub fn append_block(&mut self, content: &str, depth: usize) -> fmt::Result {
         self.buffer_mut().append_block(content, depth)
     }
