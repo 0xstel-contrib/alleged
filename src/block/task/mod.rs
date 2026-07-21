@@ -9,16 +9,13 @@ pub use priority::*;
 pub use repeater::*;
 pub use scheduled::*;
 
-use crate::{
-    block::{BlockImpl, extract_text},
-    consts::SCHEDULED_DELIM,
-};
+use crate::{block::BlockImpl, consts::SCHEDULED_DELIM};
 use comrak::nodes::NodeValue;
 use std::{fmt, str::FromStr};
 
 #[derive(Debug, Clone)]
 pub struct Task<'a> {
-    inner: TaskBlockNode<'a>,
+    pub(crate) inner: TaskBlockNode<'a>,
     pub marker: TaskMarker,
     pub text: String,
     pub priority: Option<TaskPriority>,
@@ -74,9 +71,7 @@ impl<'a> From<TaskBlockNode<'a>> for Task<'a> {
 
 impl BlockImpl for Task<'_> {
     fn raw(&self) -> String {
-        let mut raw = String::new();
-        extract_text(self.inner.as_ref(), &mut raw);
-        raw
+        self.to_string()
     }
     fn plain(&self) -> String {
         self.text.clone()

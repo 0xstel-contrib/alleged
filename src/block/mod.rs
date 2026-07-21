@@ -29,31 +29,35 @@ pub(crate) fn extract_text<'a>(node: &'a AstNode<'a>, text: &mut String) {
 
 #[derive(Debug, Clone)]
 pub enum Block<'a> {
-    Text(Text<'a>),
-    Task(Task<'a>),
+    Text(Text<'a>, usize),
+    Task(Task<'a>, usize),
 }
 
 impl<'a> From<Task<'a>> for Block<'a> {
     fn from(task: Task<'a>) -> Self {
-        Self::Task(task)
+        let depth = task.inner.depth();
+        Self::Task(task, depth)
     }
 }
 
 impl<'a> From<Text<'a>> for Block<'a> {
     fn from(text: Text<'a>) -> Self {
-        Self::Text(text)
+        let depth = text.inner.depth();
+        Self::Text(text, depth)
     }
 }
 
 impl<'a> From<TextBlockNode<'a>> for Block<'a> {
     fn from(inner: TextBlockNode<'a>) -> Self {
-        Self::Text(Text::from(inner))
+        let depth = inner.depth();
+        Self::Text(Text::from(inner), depth)
     }
 }
 
 impl<'a> From<TaskBlockNode<'a>> for Block<'a> {
     fn from(inner: TaskBlockNode<'a>) -> Self {
-        Self::Task(Task::from(inner))
+        let depth = inner.depth();
+        Self::Task(Task::from(inner), depth)
     }
 }
 

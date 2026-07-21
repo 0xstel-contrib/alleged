@@ -3,22 +3,18 @@ use comrak::nodes::NodeValue;
 pub use node::*;
 
 use crate::{
-    block::{BlockImpl, BlockNodeImpl, extract_text},
+    block::{BlockImpl, extract_text},
     consts::LOGSEQ_TOKENS,
 };
 
 #[derive(Debug, Clone)]
 pub struct Text<'a> {
-    inner: TextBlockNode<'a>,
-    pub depth: usize,
+    pub(crate) inner: TextBlockNode<'a>,
 }
 
 impl<'a> From<TextBlockNode<'a>> for Text<'a> {
     fn from(inner: TextBlockNode<'a>) -> Self {
-        Self {
-            depth: inner.depth(),
-            inner,
-        }
+        Self { inner }
     }
 }
 
