@@ -1,5 +1,6 @@
-use crate::{consts::PROPERTY_REGEX, error::EntryBufferError, properties::Properties};
+use crate::{consts::PROPERTY_REGEX, properties::Properties};
 use std::{
+    convert::Infallible,
     fmt::{self, Write},
     str::FromStr,
 };
@@ -11,7 +12,7 @@ pub struct EntryBuffer {
 }
 
 impl FromStr for EntryBuffer {
-    type Err = EntryBufferError;
+    type Err = Infallible;
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {
         let mut lines = text.lines().peekable();

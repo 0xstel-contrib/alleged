@@ -1,27 +1,48 @@
+use humantime::DurationError;
 use std::{fmt, io, path::PathBuf};
 use thiserror::Error;
 use time::error::{IndeterminateOffset, InvalidVariant, Parse};
 
 #[derive(Error, Debug)]
+pub enum Alleged {
+    #[error("Graph-related failure: {0}")]
+    Graph(#[from] GraphError),
+    #[error("Graph builder failed: {0}")]
+    GraphBuilder(#[from] GraphBuilderError),
+    #[error("Entry-related error: {0}")]
+    Entry(#[from] EntryError),
+    #[error("Repeater parsing failed: {0}")]
+    ParseRepeater(#[from] ParseRepeaterErr),
+    #[error("Got an I/O error: {0}")]
+    IO(#[from] io::Error),
+    #[error("Got a formatting error: {0}")]
+    Fmt(#[from] fmt::Error),
+    #[error("Date string parsing failed: {0}")]
+    Date(#[from] Parse),
+    #[error("Couldn't determine local date offset: {0}")]
+    DateOffset(#[from] IndeterminateOffset),
+    #[error("Time string parsing failed: {0}")]
+    Time(#[from] InvalidVariant),
+    #[error("HumanTime duration conversion failed: {0}")]
+    HumanTime(#[from] DurationError),
+}
+
+#[derive(Error, Debug)]
+pub enum EntryError {
+    #[error("Invalid graph entry path: {0}")]
+    InvalidPath(PathBuf),
+}
+
+#[derive(Error, Debug)]
 pub enum GraphBuilderError {
     #[error("Root directory wasn't defined!")]
     UndefinedRootDirectory,
-    #[error("File read failed! ({0})")]
-    FileReadFailed(#[from] io::Error),
 }
 
 #[derive(Error, Debug)]
 pub enum GraphError {
     #[error("Invalid Logseq graph entry path: {0}")]
     InvalidPath(PathBuf),
-    #[error("Got an I/O error: {0}")]
-    IO(#[from] io::Error),
-    #[error("Text formatting failed: {0}")]
-    Fmt(#[from] fmt::Error),
-    #[error("Failed to parse the date str: {0}")]
-    Date(#[from] Parse),
-    #[error("Local date offset handling failed: {0}")]
-    Offset(#[from] IndeterminateOffset),
 }
 
 #[derive(Error, Debug)]
@@ -41,8 +62,10 @@ pub enum TaskError {
 }
 
 #[derive(Error, Debug)]
-#[error("Failed to parse the repetition rule string!")]
-pub struct ParseRepeaterErr;
+pub enum ParseRepeaterErr {
+    #[error("Invalid repeater string!")]
+    InvalidRepeater,
+}
 
 #[derive(Error, Debug)]
 pub enum TaskPriorityError {
@@ -59,6 +82,3 @@ pub enum ParseScheduledError {
     #[error("Failed to parse the time str: {0}")]
     Time(#[from] InvalidVariant),
 }
-
-#[derive(Error, Debug)]
-pub enum EntryBufferError {}

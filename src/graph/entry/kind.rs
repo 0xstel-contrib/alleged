@@ -1,4 +1,7 @@
-use crate::{consts::JOURNAL_FORMAT, error::GraphError};
+use crate::{
+    consts::JOURNAL_FORMAT,
+    error::{Alleged, EntryError},
+};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -24,7 +27,7 @@ impl EntryKind {
 }
 
 impl TryFrom<&Path> for EntryKind {
-    type Error = GraphError;
+    type Error = Alleged;
 
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
         for ancestor in path.ancestors() {
@@ -32,7 +35,7 @@ impl TryFrom<&Path> for EntryKind {
                 let date = Date::parse(
                     &path
                         .file_stem()
-                        .ok_or_else(|| GraphError::InvalidPath(path.to_path_buf()))?
+                        .ok_or_else(|| EntryError::InvalidPath(path.to_path_buf()))?
                         .to_string_lossy(),
                     JOURNAL_FORMAT,
                 )?;
@@ -40,13 +43,13 @@ impl TryFrom<&Path> for EntryKind {
             } else if ancestor.ends_with("pages") {
                 return Ok(Self::Page(
                     path.file_stem()
-                        .ok_or_else(|| GraphError::InvalidPath(path.to_path_buf()))?
+                        .ok_or_else(|| EntryError::InvalidPath(path.to_path_buf()))?
                         .to_string_lossy()
                         .into(),
                 ));
             }
         }
 
-        Err(GraphError::InvalidPath(path.to_path_buf()))
+        Err(EntryError::InvalidPath(path.to_path_buf()).into())
     }
 }

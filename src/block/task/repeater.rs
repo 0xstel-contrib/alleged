@@ -1,4 +1,4 @@
-use crate::error::ParseRepeaterErr;
+use crate::error::{Alleged, ParseRepeaterErr};
 use humantime::{Duration as HumanDuration, format_duration};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -39,17 +39,17 @@ impl fmt::Display for ScheduledRepeater {
 }
 
 impl FromStr for ScheduledRepeater {
-    type Err = ParseRepeaterErr;
+    type Err = Alleged;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut chars = s.chars();
 
-        let maybe_repeater = match chars.next().ok_or(ParseRepeaterErr)? {
+        let maybe_repeater = match chars.next().ok_or(ParseRepeaterErr::InvalidRepeater)? {
             '.' => {
                 if chars.next() == Some('+') {
                     Ok((RepeatFrom::Completion, chars))
                 } else {
-                    Err(ParseRepeaterErr)
+                    Err(ParseRepeaterErr::InvalidRepeater)
                 }
             }
             '+' => {
@@ -60,7 +60,7 @@ impl FromStr for ScheduledRepeater {
                     Ok((RepeatFrom::PrevScheduled, chars))
                 }
             }
-            _ => Err(ParseRepeaterErr),
+            _ => Err(ParseRepeaterErr::InvalidRepeater),
         };
 
         let (rule, duration_chars) = maybe_repeater?;
@@ -68,7 +68,7 @@ impl FromStr for ScheduledRepeater {
         let duration_str: String = duration_chars
             .map(|c| if c == 'm' { 'M' } else { c })
             .collect();
-        let duration_human: HumanDuration = duration_str.parse().map_err(|_| ParseRepeaterErr)?;
+        let duration_human: HumanDuration = duration_str.parse()?;
 
         Ok(Self {
             duration: duration_human.into(),
