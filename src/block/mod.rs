@@ -27,7 +27,7 @@ pub(crate) fn extract_text<'a>(node: &'a AstNode<'a>, text: &mut String) {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Block<'a> {
     Text(Text<'a>),
     Task(Task<'a>),

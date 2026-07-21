@@ -4,7 +4,7 @@ use humantime::{Duration as HumanDuration, format_duration};
 use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr, time::Duration};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum RepeatFrom {
     // ".+1d"
@@ -25,7 +25,7 @@ impl fmt::Display for RepeatFrom {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ScheduledRepeater {
     pub rule: RepeatFrom,

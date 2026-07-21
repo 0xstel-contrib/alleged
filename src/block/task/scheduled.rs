@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 use time::{Date, Time, Weekday, error::InvalidVariant};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Scheduled {
     pub date: Date,

@@ -7,7 +7,7 @@ use crate::{
     consts::LOGSEQ_TOKENS,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Text<'a> {
     inner: TextBlockNode<'a>,
     pub depth: usize,

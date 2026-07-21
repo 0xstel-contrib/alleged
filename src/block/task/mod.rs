@@ -16,7 +16,7 @@ use crate::{
 use comrak::nodes::NodeValue;
 use std::{fmt, str::FromStr};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Task<'a> {
     inner: TaskBlockNode<'a>,
     pub marker: TaskMarker,

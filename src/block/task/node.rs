@@ -14,5 +14,5 @@ fn is_task_block(node: Node<'_>) -> bool {
     })
 }
 
-#[nutype(validate(predicate = is_task_block), derive(Debug, AsRef))]
+#[nutype(validate(predicate = is_task_block), derive(Debug, Clone, AsRef))]
 pub struct TaskBlockNode<'a>(Node<'a>);
