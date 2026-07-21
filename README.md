@@ -69,3 +69,7 @@ Logseq DB version support is TODO -- see [the tracking issue](https://codeberg.o
 - `regex-lite`: use the [regex-lite](https://lib.rs/crates/regex-lite) crate as the regular expression backend (**enabled by default**)
 - `regex`: use the [regex](https://lib.rs/crates/regex) crate as the regular expression backend
 - `serde`: enable support for [serde](https://serde.rs) serialization & deserialization of certain types
+
+## Contributing
+
+Contributions -- code or issues -- are welcome! The repository on [Codeberg](https://codeberg.org/0xstel/alleged) is ideal, but contributions are also accepted on the [GitHub mirror](https://github.com/0xstel-contrib/alleged) :>
