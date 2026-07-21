@@ -32,7 +32,7 @@ impl Graph {
                 entry.file_type().is_file() && entry.path().extension() == Some(OsStr::new("md"))
             })
     }
-    fn entries(&self) -> impl Iterator<Item = GraphEntry<'_>> {
+    pub fn entries(&self) -> impl Iterator<Item = GraphEntry<'_>> {
         self.markdown_files()
             .filter_map(|entry| GraphEntry::new(entry.into_path(), &self.comrak_options).ok())
     }
