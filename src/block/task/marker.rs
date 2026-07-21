@@ -1,20 +1,13 @@
-use serde::{Deserialize, Serialize};
-use std::str::FromStr;
-use thiserror::Error;
+use crate::error::TaskMarkerError;
+use std::{fmt, str::FromStr};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub enum TaskMarker {
     ToDo,
     Doing,
     Done,
     Cancelled,
     Waiting,
-}
-
-#[derive(Error, Debug)]
-pub enum TaskMarkerError {
-    #[error("Invalid task marker str!")]
-    InvalidMarker,
 }
 
 impl FromStr for TaskMarker {
@@ -28,6 +21,18 @@ impl FromStr for TaskMarker {
             "CANCELED" | "CANCELLED" => Ok(Self::Cancelled),
             "WAITING" => Ok(Self::Waiting),
             _ => Err(TaskMarkerError::InvalidMarker),
+        }
+    }
+}
+
+impl fmt::Display for TaskMarker {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ToDo => write!(f, "TODO"),
+            Self::Doing => write!(f, "DOING"),
+            Self::Done => write!(f, "DONE"),
+            Self::Cancelled => write!(f, "CANCELLED"),
+            Self::Waiting => write!(f, "WAITING"),
         }
     }
 }

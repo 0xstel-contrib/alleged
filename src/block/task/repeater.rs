@@ -1,8 +1,8 @@
-use humantime::Duration as HumanDuration;
-use serde::{Deserialize, Serialize};
-use std::{str::FromStr, time::Duration};
+use crate::error::ParseRepeaterErr;
+use humantime::{Duration as HumanDuration, format_duration};
+use std::{fmt, str::FromStr, time::Duration};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub enum RepeatFrom {
     // ".+1d"
     Completion,
@@ -12,14 +12,27 @@ pub enum RepeatFrom {
     PrevScheduledConstrained,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl fmt::Display for RepeatFrom {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Completion => write!(f, ".+"),
+            Self::PrevScheduled => write!(f, "+"),
+            Self::PrevScheduledConstrained => write!(f, "++"),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct ScheduledRepeater {
     pub rule: RepeatFrom,
     pub duration: Duration,
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct ParseRepeaterErr;
+impl fmt::Display for ScheduledRepeater {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}", self.rule, format_duration(self.duration))
+    }
+}
 
 impl FromStr for ScheduledRepeater {
     type Err = ParseRepeaterErr;
@@ -29,14 +42,14 @@ impl FromStr for ScheduledRepeater {
 
         let maybe_repeater = match chars.next().ok_or(ParseRepeaterErr)? {
             '.' => {
-                if let Some('+') = chars.next() {
+                if chars.next() == Some('+') {
                     Ok((RepeatFrom::Completion, chars))
                 } else {
                     Err(ParseRepeaterErr)
                 }
             }
             '+' => {
-                if let Some('+') = chars.as_str().chars().next() {
+                if chars.as_str().starts_with('+') {
                     _ = chars.next();
                     Ok((RepeatFrom::PrevScheduledConstrained, chars))
                 } else {
@@ -47,6 +60,7 @@ impl FromStr for ScheduledRepeater {
         };
 
         let (rule, duration_chars) = maybe_repeater?;
+        // HACK: Logseq's `m` means "minute" -- to `humantime`, `m` is month. We manually fix that :)
         let duration_str: String = duration_chars
             .map(|c| if c == 'm' { 'M' } else { c })
             .collect();

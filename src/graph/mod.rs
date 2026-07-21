@@ -1,101 +1,80 @@
 mod builder;
-mod error;
+mod entry;
 pub use builder::*;
-pub use error::*;
+pub use entry::*;
 
-use crate::{
-    file::{File, FileError},
-    page::{Page, preprocess_logseq_markdown},
-};
-use comrak::{Node, Options, nodes::NodeValue, parse_document};
-use rustc_hash::FxHashMap;
-use std::{
-    ffi::OsStr,
-    fs,
-    path::{Path, PathBuf},
-};
+use crate::error::GraphError;
+use comrak::Options;
+use std::{ffi::OsStr, fs, path::PathBuf};
+use time::{Date, OffsetDateTime};
 use walkdir::{DirEntry, WalkDir};
 
 pub struct Graph {
     comrak_options: Options<'static>,
     exclude: Vec<String>,
     pub root: PathBuf,
-    pub buffers: FxHashMap<PathBuf, String>,
 }
 
 impl Graph {
-    #[must_use]
-    pub fn builder() -> GraphBuilder {
-        GraphBuilder::default()
-    }
-
     fn is_excluded(&self, entry: &DirEntry) -> bool {
         entry
             .file_name()
             .to_str()
             .is_some_and(|name| self.exclude.contains(&name.to_string()))
     }
-
-    fn markdown_files<'a>(&self) -> impl Iterator<Item = File<'a>> {
+    fn markdown_files(&self) -> impl Iterator<Item = DirEntry> {
         WalkDir::new(&self.root)
             .follow_links(true)
             .into_iter()
             .filter_entry(|e| !self.is_excluded(e))
             .filter_map(Result::ok)
-            .filter(|entry| entry.file_type().is_file())
-            .filter(|entry| entry.path().extension() == Some(OsStr::new("md")))
-            .map(File::from)
+            .filter(|entry| {
+                entry.file_type().is_file() && entry.path().extension() == Some(OsStr::new("md"))
+            })
     }
-
-    pub fn pages<'a>(&self) -> impl Iterator<Item = File<'a>> {
+    fn entries(&self) -> impl Iterator<Item = GraphEntry<'_>> {
         self.markdown_files()
-            .filter(|f| f.path.parent().is_some_and(|p| p.ends_with("pages")))
+            .filter_map(|entry| GraphEntry::new(entry.into_path(), &self.comrak_options).ok())
     }
-
-    pub fn journals<'a>(&self) -> impl Iterator<Item = File<'a>> {
-        self.markdown_files()
-            .filter(|f| f.path.parent().is_some_and(|p| p.ends_with("journals")))
+    #[must_use]
+    pub fn builder() -> GraphBuilder {
+        GraphBuilder::default()
     }
-
-    pub fn entries<'a>(&self) -> impl Iterator<Item = File<'a>> {
-        self.pages().chain(self.journals())
+    pub fn journals(&self) -> impl Iterator<Item = GraphEntry<'_>> {
+        self.entries()
+            .filter(|entry| matches!(entry.kind, EntryKind::Journal(_)))
     }
-
-    fn edit_text_nodes_recursive<F>(node: Node<'_>, edit_callback: &mut F)
+    pub fn pages(&self) -> impl Iterator<Item = GraphEntry<'_>> {
+        self.entries()
+            .filter(|entry| matches!(entry.kind, EntryKind::Page(_)))
+    }
+    fn entry(&self, entry: &EntryKind) -> Result<GraphEntry<'_>, GraphError> {
+        let relative_path: PathBuf = entry.as_relative_path().into();
+        GraphEntry::new(self.root.join(relative_path), &self.comrak_options)
+    }
+    pub fn journal<D>(&self, date: D) -> Result<GraphEntry<'_>, GraphError>
     where
-        F: FnMut(String) -> String,
+        D: Into<Date>,
     {
-        for child in node.children() {
-            if let NodeValue::Text(ref mut text) = child.data_mut().value {
-                *text = edit_callback(text.to_string()).into();
+        self.entry(&EntryKind::Journal(date.into()))
+    }
+    pub fn today(&self) -> Result<GraphEntry<'_>, GraphError> {
+        self.journal(OffsetDateTime::now_local()?.date())
+    }
+    pub fn page(&self, key: &str) -> Result<GraphEntry<'_>, GraphError> {
+        for mut entry in self.entries() {
+            if let Some(props) = entry.properties()
+                && props.alias.iter().any(|a| a == key)
+            {
+                return Ok(entry);
             }
-
-            Self::edit_text_nodes_recursive(child, edit_callback);
         }
-    }
 
-    pub fn edit_text_node<F>(node: Node<'_>, edit_callback: &mut F)
-    where
-        F: FnMut(String) -> String,
-    {
-        Self::edit_text_nodes_recursive(node, edit_callback);
+        self.entry(&EntryKind::Page(key.to_string()))
     }
+    pub fn save(&self, entry: &mut GraphEntry<'_>) -> Result<(), GraphError> {
+        fs::write(entry.path(), entry.buffer().to_string().as_bytes())?;
 
-    pub fn parse_file<'a>(&self, file: &'a File<'a>) -> Result<Page<'a>, FileError> {
-        let buffer = file.get_buffer()?;
-        let root = parse_document(
-            &file.arena,
-            preprocess_logseq_markdown(buffer).as_str(),
-            &self.comrak_options,
-        );
-        Ok(Page::try_from(root)?)
-    }
-
-    pub fn save_to_disk<P>(&self, path: &P, page: &Page<'_>) -> Result<(), FileError>
-    where
-        P: AsRef<Path>,
-    {
-        fs::write(path, page.to_logseq_markdown()?.as_bytes())?;
         Ok(())
     }
 }

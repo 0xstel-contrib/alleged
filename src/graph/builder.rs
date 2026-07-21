@@ -1,9 +1,5 @@
-use crate::{
-    consts::DEFAULT_COMRAK_OPTIONS,
-    graph::{Graph, GraphBuilderError},
-};
+use crate::{consts::COMRAK_OPTIONS, error::GraphBuilderError, graph::Graph};
 use comrak::Options;
-use rustc_hash::FxHashMap;
 use std::path::PathBuf;
 
 #[derive(Default)]
@@ -33,13 +29,12 @@ impl GraphBuilder {
         let root = self.root.ok_or(GraphBuilderError::UndefinedRootDirectory)?;
         let comrak_options = self
             .comrak_options
-            .unwrap_or(DEFAULT_COMRAK_OPTIONS.clone());
+            .unwrap_or_else(|| COMRAK_OPTIONS.clone());
 
         Ok(Graph {
             comrak_options,
             root,
             exclude: self.exclude,
-            buffers: FxHashMap::default(),
         })
     }
 }
