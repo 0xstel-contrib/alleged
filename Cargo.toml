@@ -5,10 +5,12 @@ members = ["bindings/*"]
 version = "0.2.0"
 authors = ["stel <stel@national.shitposting.agency>"]
 edition = "2024"
+description = "Read/write to Logseq note graphs in Rust"
+keywords = ["logseq", "markdown", "markdown-parser", "logseq-graph"]
+repository = "https://codeberg.org/0xstel/alleged"
 license = "0BSD"
 
 [workspace.lints.clippy]
-cargo = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 
 [package]
@@ -16,6 +18,9 @@ name = "alleged-lib"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
+description.workspace = true
+keywords.workspace = true
+repository.workspace = true
 license.workspace = true
 
 [lints]

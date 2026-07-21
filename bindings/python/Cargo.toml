@@ -3,6 +3,9 @@ name = "alleged-python"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
+description.workspace = true
+keywords.workspace = true
+repository.workspace = true
 license.workspace = true
 
 [lints]
