@@ -8,6 +8,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
+/// A Logseq block with normal text content.
 pub struct Text<'a> {
     pub(crate) inner: TextBlockNode<'a>,
 }
@@ -34,6 +35,7 @@ impl BlockImpl for Text<'_> {
 }
 
 impl Text<'_> {
+    /// Edit the Logseq block by the given callback.
     pub fn edit<F>(&self, callback: &mut F)
     where
         F: FnMut(&str) -> String,

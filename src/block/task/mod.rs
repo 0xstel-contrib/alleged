@@ -14,6 +14,7 @@ use comrak::nodes::NodeValue;
 use std::{fmt, str::FromStr};
 
 #[derive(Debug, Clone)]
+/// Representation of a task, with optional priority and scheduling. See <https://docs.logseq.com/#/page/tasks>
 pub struct Task<'a> {
     pub(crate) inner: TaskBlockNode<'a>,
     pub marker: TaskMarker,
@@ -79,6 +80,7 @@ impl BlockImpl for Task<'_> {
 }
 
 impl Task<'_> {
+    /// Update a task's marker. Returns a boolean indicating whether or not the marker in the underlying node was actually updated.
     pub fn mark(&mut self, marker: TaskMarker) -> bool {
         let mut updated_marker = false;
 

@@ -1,3 +1,9 @@
+/assets/my_graph/journals/*
+!/assets/my_graph/journals/.gitkeep
+/assets/my_graph/logseq/*
+!/assets/my_graph/logseq/.gitkeep
+/assets/my_graph/pages/*
+!/assets/my_graph/pages/.gitkeep
 Cargo.lock
 .env
 target/

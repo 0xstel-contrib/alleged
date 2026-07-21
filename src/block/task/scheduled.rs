@@ -1,7 +1,7 @@
 use crate::{
     block::ScheduledRepeater,
     consts::{DATE_FORMAT, SCHEDULED_DELIM, SCHEDULED_REGEX, TIME_FORMAT},
-    error::ParseScheduledError,
+    error::{Alleged, ParseScheduledError},
 };
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -10,6 +10,7 @@ use time::{Date, Time, Weekday, error::InvalidVariant};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+/// Representation of a `SCHEDULED` Logseq string property. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
 pub struct Scheduled {
     pub date: Date,
     pub day: Weekday,
@@ -58,18 +59,18 @@ fn custom_parse_weekday(s: &str) -> Result<Weekday, InvalidVariant> {
 }
 
 impl FromStr for Scheduled {
-    type Err = ParseScheduledError;
+    type Err = Alleged;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(captures) = SCHEDULED_REGEX.captures(s) {
             let date_str = captures
                 .get(1)
                 .map(|m| m.as_str())
-                .ok_or(ParseScheduledError::Generic)?;
+                .ok_or(ParseScheduledError)?;
             let day_str = captures
                 .get(2)
                 .map(|m| m.as_str())
-                .ok_or(ParseScheduledError::Generic)?;
+                .ok_or(ParseScheduledError)?;
             let time = captures
                 .get(3)
                 .map(|m| m.as_str())
@@ -86,7 +87,7 @@ impl FromStr for Scheduled {
                 repeater,
             })
         } else {
-            Err(ParseScheduledError::Generic)
+            Err(ParseScheduledError.into())
         }
     }
 }

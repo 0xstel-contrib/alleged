@@ -6,8 +6,11 @@ use std::{
 };
 
 #[derive(Debug, Default, Clone)]
+/// Representation of a file in your Logseq graph
 pub struct EntryBuffer {
+    /// A file's (parsed) Logseq properties
     pub properties: Option<Properties>,
+    /// Everything after the properties section, if it exists -- otherwise just the entire file
     pub content: String,
 }
 
@@ -94,9 +97,17 @@ impl EntryBuffer {
 
         Ok(())
     }
+    /// Prepend a text block to the underlying text content (after properties) with the specified indent
+    ///
+    /// # Errors
+    /// Throws an error if the underlying [`write!`] call fails
     pub fn prepend_block(&mut self, content: &str, depth: usize) -> fmt::Result {
         self.prepend_or_append_block(content, depth, true)
     }
+    /// Append a text block to the underlying text content with the specified intent
+    ///
+    /// # Errors
+    /// Throws an error if the underlying [`write!`] call fails
     pub fn append_block(&mut self, content: &str, depth: usize) -> fmt::Result {
         self.prepend_or_append_block(content, depth, false)
     }

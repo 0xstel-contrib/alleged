@@ -5,16 +5,27 @@ use std::fmt;
 
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+/// The properties of a page in your Logseq graph. See <https://docs.logseq.com/#/page/properties>
 pub struct Properties {
+    /// Icon identifier
     pub icon: Option<String>,
+    /// Overrides page title and allows it to be different from the filename
     pub title: Option<String>,
+    /// A list of wikilinks or normal tags for a page. Not really implemented yet, we just split the variable by commas (which isn't how it's supposed to actually be parsed...)
     pub tags: Vec<String>,
+    /// Desginates a page/block as a template
     pub template: Option<String>,
+    /// Block-specific indicator and not applicable to pages, I think -- so TBA
     pub template_including_parent: bool,
+    /// A list of comma-delimited alternate page titles. Used internally by the [`crate::graph::Graph::page`] accessor function
     pub alias: Vec<String>,
+    /// A list of comma-delimited "filters?" Not sure; functionality TBA
     pub filters: Vec<String>,
+    /// Whether or not this page should be included as an export
     pub public: bool,
+    /// Whether or not this page should be hidden from the global graph view
     pub exclude_from_graph_view: bool,
+    /// Custom page properties (i.e. anything that _isn't_ one of the above)
     pub custom: FxHashMap<String, String>,
 }
 
