@@ -39,7 +39,7 @@ nutype = "0.7.0"
 regex = { version = "1.13.1", optional = true }
 regex-lite = { version = "0.1.9", optional = true }
 rustc-hash = "2.1.3"
-serde = { version = "1.0.229", features = ["derive"], optional = true }
+serde = { version = "1.0.0", features = ["derive"], optional = true }
 thiserror = "2.0.19"
 time = { version = "0.3.54", features = ["formatting", "macros", "parsing", "local-offset"] }
 walkdir = "2.5.0"
