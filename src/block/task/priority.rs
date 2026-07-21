@@ -1,11 +1,21 @@
 use crate::error::TaskPriorityError;
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 #[derive(Debug)]
 pub enum TaskPriority {
     A,
     B,
     C,
+}
+
+impl fmt::Display for TaskPriority {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::A => write!(f, "[#A]"),
+            Self::B => write!(f, "[#B]"),
+            Self::C => write!(f, "[#C]"),
+        }
+    }
 }
 
 impl FromStr for TaskPriority {

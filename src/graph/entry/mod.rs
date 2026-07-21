@@ -4,7 +4,7 @@ pub use buffer::*;
 pub use kind::*;
 
 use crate::{block::Block, consts::GRAPH_LAYOUT, error::GraphError, properties::Properties};
-use comrak::{Arena, Node, Options, format_commonmark, nodes::NodeValue, parse_document};
+use comrak::{Arena, Node, Options, format_commonmark, parse_document};
 use std::{
     fmt, fs,
     path::{Path, PathBuf},
@@ -76,14 +76,7 @@ impl<'a> GraphEntry<'a> {
 
         let blocks = root
             .descendants()
-            .filter_map(|node| {
-                if matches!(node.data().value, NodeValue::Item(_)) {
-                    node.first_child()
-                } else {
-                    None
-                }
-            })
-            .map(Block::from);
+            .filter_map(|node| Block::try_from(node).ok());
 
         Document(root, blocks)
     }
@@ -91,6 +84,7 @@ impl<'a> GraphEntry<'a> {
         let comrak_options = self.comrak_options;
         let buffer = self.buffer_mut();
 
+        buffer.content.clear();
         format_commonmark(root, comrak_options, &mut buffer.content)?;
 
         Ok(buffer.content.clone())

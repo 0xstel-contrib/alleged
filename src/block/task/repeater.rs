@@ -1,6 +1,6 @@
 use crate::error::ParseRepeaterErr;
-use humantime::Duration as HumanDuration;
-use std::{str::FromStr, time::Duration};
+use humantime::{Duration as HumanDuration, format_duration};
+use std::{fmt, str::FromStr, time::Duration};
 
 #[derive(Debug)]
 pub enum RepeatFrom {
@@ -12,10 +12,26 @@ pub enum RepeatFrom {
     PrevScheduledConstrained,
 }
 
+impl fmt::Display for RepeatFrom {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Completion => write!(f, ".+"),
+            Self::PrevScheduled => write!(f, "+"),
+            Self::PrevScheduledConstrained => write!(f, "++"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ScheduledRepeater {
     pub rule: RepeatFrom,
     pub duration: Duration,
+}
+
+impl fmt::Display for ScheduledRepeater {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}", self.rule, format_duration(self.duration))
+    }
 }
 
 impl FromStr for ScheduledRepeater {

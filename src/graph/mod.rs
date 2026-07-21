@@ -6,7 +6,7 @@ pub use entry::*;
 use crate::error::GraphError;
 use comrak::Options;
 use std::{ffi::OsStr, fs, path::PathBuf};
-use time::{Date, Timestamp};
+use time::{Date, OffsetDateTime};
 use walkdir::{DirEntry, WalkDir};
 
 pub struct Graph {
@@ -59,7 +59,7 @@ impl Graph {
         self.entry(&EntryKind::Journal(date.into()))
     }
     pub fn today(&self) -> Result<GraphEntry<'_>, GraphError> {
-        self.journal(Timestamp::now().date())
+        self.journal(OffsetDateTime::now_local()?.date())
     }
     pub fn page(&self, key: &str) -> Result<GraphEntry<'_>, GraphError> {
         for mut entry in self.entries() {

@@ -1,5 +1,3 @@
-use pyo3;
-
 #[pyo3::pymodule]
 mod alleged {
     use pyo3::prelude::*;

@@ -1,6 +1,6 @@
 use std::{fmt, io, path::PathBuf};
 use thiserror::Error;
-use time::error::{InvalidVariant, Parse};
+use time::error::{IndeterminateOffset, InvalidVariant, Parse};
 
 #[derive(Error, Debug)]
 pub enum GraphBuilderError {
@@ -20,6 +20,8 @@ pub enum GraphError {
     Fmt(#[from] fmt::Error),
     #[error("Failed to parse the date str: {0}")]
     Date(#[from] Parse),
+    #[error("Local date offset handling failed: {0}")]
+    Offset(#[from] IndeterminateOffset),
 }
 
 #[derive(Error, Debug)]

@@ -1,9 +1,9 @@
 use crate::{
-    consts::{DATE_FORMAT, SCHEDULED_REGEX, TIME_FORMAT},
+    block::ScheduledRepeater,
+    consts::{DATE_FORMAT, SCHEDULED_DELIM, SCHEDULED_REGEX, TIME_FORMAT},
     error::ParseScheduledError,
-    task::ScheduledRepeater,
 };
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 use time::{Date, Time, Weekday, error::InvalidVariant};
 
 #[derive(Debug)]
@@ -12,6 +12,32 @@ pub struct Scheduled {
     pub day: Weekday,
     pub time: Option<Time>,
     pub repeater: Option<ScheduledRepeater>,
+}
+
+impl fmt::Display for Scheduled {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // NOTE: `DATE_FORMAT` is guaranteed valid @ compile time, so **this will never panic**.
+        #[allow(clippy::unwrap_used)]
+        write!(
+            f,
+            "{} <{} {}",
+            SCHEDULED_DELIM,
+            self.date.format(DATE_FORMAT).unwrap(),
+            self.day
+        )?;
+
+        if let Some(time) = &self.time {
+            // NOTE: `TIME_FORMAT` is guaranteed valid @ compile time, so **this will never panic**.
+            #[allow(clippy::unwrap_used)]
+            write!(f, " {}", time.format(TIME_FORMAT).unwrap())?;
+        }
+
+        if let Some(repeater) = &self.repeater {
+            write!(f, " {repeater}")?;
+        }
+
+        write!(f, ">")
+    }
 }
 
 // HACK: `time`'s `Weekday::from_str` doesn't support shortened weekdays 😮‍💨

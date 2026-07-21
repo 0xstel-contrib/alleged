@@ -12,7 +12,7 @@ impl EntryKind {
     #[must_use]
     pub fn as_relative_path(&self) -> String {
         match self {
-            // NOTE: This will never panic, because `JOURNAL_FORMAT` is guaranteed to be valid at compile time.
+            // NOTE: `JOURNAL_FORMAT` is guaranteed valid @ compile time, so **this will never panic**.
             #[allow(clippy::unwrap_used)]
             Self::Journal(date) => format!("journals/{}.md", date.format(JOURNAL_FORMAT).unwrap()),
             Self::Page(title) => format!("pages/{title}.md"),

@@ -8,8 +8,8 @@ edition = "2024"
 license = "0BSD"
 
 [workspace.lints.clippy]
-cargo = "warn"
-nursery = "warn"
+cargo = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
 
 [package]
 name = "alleged-lib"
@@ -17,7 +17,9 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
-lints.workspace = true
+
+[lints]
+workspace = true
 
 [features]
 default = ["regex-lite"]
@@ -25,11 +27,12 @@ regex = ["dep:regex"]
 regex-lite = ["dep:regex-lite"]
 
 [dependencies]
-comrak = { version = "0.53.0", default-features = false }
+comrak = { version = "0.54.0", default-features = false }
 humantime = "2.4.0"
+nutype = "0.7.0"
 regex = { version = "1.13.1", optional = true }
 regex-lite = { version = "0.1.9", optional = true }
 rustc-hash = "2.1.3"
-thiserror = "2.0.18"
-time = { version = "0.3.53", features = ["formatting", "macros", "parsing"] }
+thiserror = "2.0.19"
+time = { version = "0.3.54", features = ["formatting", "macros", "parsing", "local-offset"] }
 walkdir = "2.5.0"
