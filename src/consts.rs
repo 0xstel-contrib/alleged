@@ -22,7 +22,7 @@ pub static COMRAK_OPTIONS: LazyLock<Options<'static>> = LazyLock::new(|| Options
     ..Default::default()
 });
 
-pub static DEFAULT_EXCLUDE: [&str; 1] = ["logseq"];
+pub static DEFAULT_EXCLUDE: [&str; 2] = ["logseq", "contents.md"];
 
 pub static JOURNAL_FORMAT: StaticFormatDescription = format_description!("[year]_[month]_[day]");
 pub static DATE_FORMAT: StaticFormatDescription = format_description!("[year]-[month]-[day]");

@@ -1,12 +1,15 @@
 use crate::{consts::PROPERTY_REGEX, properties::Properties};
+#[cfg(feature = "python")]
+use pyo3::pyclass;
 use std::{
     convert::Infallible,
     fmt::{self, Write},
     str::FromStr,
 };
 
-#[derive(Debug, Default, Clone)]
 /// Representation of a file in your Logseq graph
+#[derive(Debug, Default, Clone)]
+#[cfg_attr(feature = "python", pyclass(from_py_object))]
 pub struct EntryBuffer {
     /// A file's (parsed) Logseq properties
     pub properties: Option<Properties>,

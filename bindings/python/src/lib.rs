@@ -1,9 +1,14 @@
-#[pyo3::pymodule]
-mod alleged {
-    use pyo3::prelude::*;
+//! Python bindings for the [`alleged-lib`] crate
 
-    #[pyfunction]
-    fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-        Ok((a + b).to_string())
-    }
+mod block;
+mod entry;
+mod graph;
+
+use pyo3::pymodule;
+
+#[doc = include_str!("../README.md")]
+#[pymodule]
+mod alleged {
+    #[pymodule_export]
+    use super::graph::PyGraph;
 }
