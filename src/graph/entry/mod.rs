@@ -14,6 +14,7 @@ use std::{
     fmt, fs,
     path::{Path, PathBuf},
     str::FromStr,
+    sync::Arc,
 };
 
 /// Basic wrapper around [`Node`] used by [`GraphEntry::blocks`] to return:
@@ -21,16 +22,16 @@ use std::{
 /// - an iterator over that root's blocks, all of which can be mutated
 pub struct Document<'a, I>(pub Node<'a>, pub I);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// A file/page/entry on a Logseq graph
-pub struct GraphEntry<'a> {
+pub struct GraphEntry {
     pub kind: EntryKind,
-    comrak_options: &'a Options<'a>,
+    comrak_options: Arc<Options<'static>>,
     buffer: Option<EntryBuffer>,
     graph: PathBuf,
 }
 
-impl<'a> GraphEntry<'a> {
+impl GraphEntry {
     fn root_from_entry_path<P: AsRef<Path>>(path: P) -> Option<PathBuf> {
         for ancestor in path.as_ref().ancestors() {
             if GRAPH_LAYOUT
@@ -62,7 +63,8 @@ impl<'a> GraphEntry<'a> {
     ///
     /// # Errors
     /// Throws an error if the given path is not a member of a valid Logseq graph.
-    pub fn new(path: PathBuf, comrak_options: &'a Options<'a>) -> Result<Self, Alleged> {
+    pub fn new(path: PathBuf, comrak_options: &Arc<Options<'static>>) -> Result<Self, Alleged> {
+        let comrak_options = Arc::clone(comrak_options);
         let kind = EntryKind::try_from(path.as_path())?;
         let graph =
             Self::root_from_entry_path(path.clone()).ok_or(EntryError::InvalidPath(path))?;
@@ -89,7 +91,7 @@ impl<'a> GraphEntry<'a> {
         arena: &'b Arena<'b>,
     ) -> Document<'b, impl Iterator<Item = Block<'b>>> {
         let buffer = self.buffer().content;
-        let root = parse_document(arena, &buffer, self.comrak_options);
+        let root = parse_document(arena, &buffer, self.comrak_options.clone().as_ref());
 
         let blocks = root
             .descendants()
@@ -102,11 +104,11 @@ impl<'a> GraphEntry<'a> {
     /// # Errors
     /// Fails if the root [`Node`] contains invalid structure. Unless you're modifying it by hand, that should be impossible
     pub fn update_buffer(&mut self, root: Node<'_>) -> Result<String, Alleged> {
-        let comrak_options = self.comrak_options;
+        let comrak_options = self.comrak_options.clone();
         let buffer = self.buffer_mut();
 
         buffer.content.clear();
-        format_commonmark(root, comrak_options, &mut buffer.content)?;
+        format_commonmark(root, comrak_options.as_ref(), &mut buffer.content)?;
 
         Ok(buffer.content.clone())
     }

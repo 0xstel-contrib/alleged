@@ -1,3 +1,5 @@
+#[cfg(feature = "python")]
+use pyo3::pyclass;
 use rustc_hash::FxHashMap;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -5,6 +7,7 @@ use std::fmt;
 
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "python", pyclass(from_py_object))]
 /// The properties of a page in your Logseq graph. See <https://docs.logseq.com/#/page/properties>
 pub struct Properties {
     /// Icon identifier

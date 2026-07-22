@@ -5,13 +5,13 @@ pub use entry::*;
 
 use crate::error::Alleged;
 use comrak::Options;
-use std::{ffi::OsStr, fs, path::PathBuf};
+use std::{ffi::OsStr, fs, path::PathBuf, sync::Arc};
 use time::{Date, OffsetDateTime};
 use walkdir::{DirEntry, WalkDir};
 
 /// Representation of a Logseq graph
 pub struct Graph {
-    comrak_options: Options<'static>,
+    comrak_options: Arc<Options<'static>>,
     exclude: Vec<String>,
     /// The path to your Logseq graph root -- i.e., a folder with the following subdirectories:
     /// - `journals/`
@@ -43,21 +43,21 @@ impl Graph {
         GraphBuilder::default()
     }
     /// All markdown files in the Logseq graph directory ([`Graph::root`])
-    pub fn entries(&self) -> impl Iterator<Item = GraphEntry<'_>> {
+    pub fn entries(&self) -> impl Iterator<Item = GraphEntry> {
         self.markdown_files()
             .filter_map(|entry| GraphEntry::new(entry.into_path(), &self.comrak_options).ok())
     }
     /// All markdown files in the Logseq graph's `journals` subdirectory
-    pub fn journals(&self) -> impl Iterator<Item = GraphEntry<'_>> {
+    pub fn journals(&self) -> impl Iterator<Item = GraphEntry> {
         self.entries()
             .filter(|entry| matches!(entry.kind, EntryKind::Journal(_)))
     }
     /// All markdown files in the Logseq graph's `pages` subdirectory
-    pub fn pages(&self) -> impl Iterator<Item = GraphEntry<'_>> {
+    pub fn pages(&self) -> impl Iterator<Item = GraphEntry> {
         self.entries()
             .filter(|entry| matches!(entry.kind, EntryKind::Page(_)))
     }
-    fn entry(&self, entry: &EntryKind) -> Result<GraphEntry<'_>, Alleged> {
+    fn entry(&self, entry: &EntryKind) -> Result<GraphEntry, Alleged> {
         let relative_path: PathBuf = entry.as_relative_path().into();
         GraphEntry::new(self.root.join(relative_path), &self.comrak_options)
     }
@@ -65,7 +65,7 @@ impl Graph {
     ///
     /// # Errors
     /// If your graph root is valid, this should never fail.
-    pub fn journal<D>(&self, date: D) -> Result<GraphEntry<'_>, Alleged>
+    pub fn journal<D>(&self, date: D) -> Result<GraphEntry, Alleged>
     where
         D: Into<Date>,
     {
@@ -75,14 +75,14 @@ impl Graph {
     ///
     /// # Errors
     /// If your graph root is valid, this should never fail.
-    pub fn today(&self) -> Result<GraphEntry<'_>, Alleged> {
+    pub fn today(&self) -> Result<GraphEntry, Alleged> {
         self.journal(OffsetDateTime::now_local()?.date())
     }
     /// Get a page by its key. Doesn't validate whether or not an entry exists, so if you need such validation, you should probably call [`std::path::Path::exists`] on the value of [`GraphEntry::path`]
     ///
     /// # Errors
     /// If your graph root is valid, this should never fail.
-    pub fn page(&self, key: &str) -> Result<GraphEntry<'_>, Alleged> {
+    pub fn page(&self, key: &str) -> Result<GraphEntry, Alleged> {
         for mut entry in self.entries() {
             if let Some(props) = entry.properties()
                 && props.alias.iter().any(|a| a == key)
@@ -97,7 +97,7 @@ impl Graph {
     ///
     /// # Errors
     /// Throws an error if the filesystem write fails.
-    pub fn save(&self, entry: &mut GraphEntry<'_>) -> Result<(), Alleged> {
+    pub fn save(&self, entry: &mut GraphEntry) -> Result<(), Alleged> {
         fs::write(entry.path(), entry.buffer().to_string().as_bytes())?;
 
         Ok(())

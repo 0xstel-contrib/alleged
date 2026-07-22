@@ -1,4 +1,6 @@
 use humantime::DurationError;
+#[cfg(feature = "python")]
+use pyo3::{PyErr, exceptions::PyValueError};
 use std::{fmt, io, path::PathBuf};
 use thiserror::Error;
 use time::error::{IndeterminateOffset, InvalidVariant, Parse};
@@ -28,6 +30,14 @@ pub enum Alleged {
     Time(#[from] InvalidVariant),
     #[error("HumanTime duration conversion failed: {0}")]
     HumanTime(#[from] DurationError),
+}
+
+#[cfg(feature = "python")]
+impl From<Alleged> for PyErr {
+    fn from(error: Alleged) -> Self {
+        let error_str = format!("{error:?}");
+        PyValueError::new_err(error_str)
+    }
 }
 
 #[derive(Error, Debug)]

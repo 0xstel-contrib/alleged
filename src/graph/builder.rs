@@ -4,7 +4,7 @@ use crate::{
     graph::Graph,
 };
 use comrak::Options;
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 /// Helper struct to construct a [`Graph`] object. You only need to define `root`, everything else has defaults :)
 pub struct GraphBuilder {
@@ -48,9 +48,10 @@ impl GraphBuilder {
     /// Fails if the root directory isn't set.
     pub fn build(self) -> Result<Graph, GraphBuilderError> {
         let root = self.root.ok_or(GraphBuilderError::UndefinedRootDirectory)?;
-        let comrak_options = self
-            .comrak_options
-            .unwrap_or_else(|| COMRAK_OPTIONS.clone());
+        let comrak_options = Arc::new(
+            self.comrak_options
+                .unwrap_or_else(|| COMRAK_OPTIONS.clone()),
+        );
 
         Ok(Graph {
             comrak_options,
