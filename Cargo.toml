@@ -51,11 +51,11 @@ python = ["dep:pyo3"]
 comrak = { version = "0.54.0", default-features = false }
 humantime = "2.4.0"
 nutype = "0.7.0"
-regex = { version = "1.13.1", optional = true }
+pyo3 = { workspace = true, optional = true }
 regex-lite = { version = "0.1.9", optional = true }
+regex = { version = "1.13.1", optional = true }
 rustc-hash = "2.1.3"
 serde = { version = "1.0.0", features = ["derive"], optional = true }
 thiserror = "2.0.19"
 time = { workspace = true }
 walkdir = "2.5.0"
-pyo3 = { workspace = true, optional = true }
