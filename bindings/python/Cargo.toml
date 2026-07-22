@@ -18,4 +18,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 alleged-lib = { path = "../../" }
-pyo3 = "0.29.0"
+pyo3 = { workspace = true }
