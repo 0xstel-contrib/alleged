@@ -2,7 +2,7 @@
 members = ["bindings/*"]
 
 [workspace.package]
-version = "0.2.1"
+version = "0.2.2"
 authors = ["stel <stel@national.shitposting.agency>"]
 edition = "2024"
 description = "Read/write to Logseq note graphs in Rust"

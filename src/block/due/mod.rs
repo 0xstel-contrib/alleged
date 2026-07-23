@@ -1,7 +1,11 @@
+mod kind;
+mod repeater;
+pub use kind::*;
+pub use repeater::*;
+
 use crate::{
-    block::ScheduledRepeater,
-    consts::{DATE_FORMAT, SCHEDULED_DELIM, SCHEDULED_REGEX, TIME_FORMAT},
-    error::{Alleged, ParseScheduledError},
+    consts::{DATE_FORMAT, DUE_DELIMS, DUE_REGEX, TIME_FORMAT},
+    error::{Alleged, ParseDueError},
 };
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -10,22 +14,23 @@ use time::{Date, Time, Weekday, error::InvalidVariant};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-/// Representation of a `SCHEDULED` Logseq string property. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
-pub struct Scheduled {
+/// Representation of a `Due` Logseq string property. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
+pub struct Due {
     pub date: Date,
     pub day: Weekday,
     pub time: Option<Time>,
-    pub repeater: Option<ScheduledRepeater>,
+    pub repeater: Option<DueRepeater>,
+    pub kind: DueKind,
 }
 
-impl fmt::Display for Scheduled {
+impl fmt::Display for Due {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // NOTE: `DATE_FORMAT` is guaranteed valid @ compile time, so **this will never panic**.
         #[allow(clippy::unwrap_used)]
         write!(
             f,
             "{} <{} {}",
-            SCHEDULED_DELIM,
+            self.kind,
             self.date.format(DATE_FORMAT).unwrap(),
             self.day
         )?;
@@ -58,36 +63,52 @@ fn custom_parse_weekday(s: &str) -> Result<Weekday, InvalidVariant> {
     }
 }
 
-impl FromStr for Scheduled {
+impl FromStr for Due {
     type Err = Alleged;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(captures) = SCHEDULED_REGEX.captures(s) {
-            let date_str = captures
+        if let Some(captures) = DUE_REGEX.captures(s) {
+            let kind = captures
                 .get(1)
-                .map(|m| m.as_str())
-                .ok_or(ParseScheduledError)?;
-            let day_str = captures
+                .ok_or(ParseDueError::InvalidInput)
+                .and_then(|m| DueKind::from_str(m.as_str()))?;
+            let date = captures
                 .get(2)
-                .map(|m| m.as_str())
-                .ok_or(ParseScheduledError)?;
-            let time = captures
+                .ok_or(Alleged::ParseScheduled(ParseDueError::InvalidInput))
+                .and_then(|m| Date::parse(m.as_str(), DATE_FORMAT).map_err(Alleged::from))?;
+            let day = captures
                 .get(3)
+                .ok_or(Alleged::ParseScheduled(ParseDueError::InvalidInput))
+                .and_then(|m| custom_parse_weekday(m.as_str()).map_err(Alleged::from))?;
+            let time = captures
+                .get(4)
                 .map(|m| m.as_str())
                 .and_then(|t| Time::parse(t, TIME_FORMAT).ok());
             let repeater = captures
-                .get(4)
+                .get(5)
                 .map(|m| m.as_str())
-                .and_then(|r| ScheduledRepeater::from_str(r).ok());
+                .and_then(|r| DueRepeater::from_str(r).ok());
 
-            Ok(Self {
-                date: Date::parse(date_str, DATE_FORMAT)?,
-                day: custom_parse_weekday(day_str)?,
+            return Ok(Self {
+                date,
+                day,
                 time,
                 repeater,
-            })
-        } else {
-            Err(ParseScheduledError.into())
+                kind,
+            });
         }
+
+        Err(ParseDueError::InvalidInput.into())
+    }
+}
+
+impl Due {
+    pub(crate) fn extract_and(s: &str) -> Result<(String, Self), Alleged> {
+        let (text, maybe_due_str) = DUE_DELIMS
+            .iter()
+            .find_map(|d| s.find(d))
+            .map_or((s, ""), |idx| s.split_at(idx));
+
+        Ok((text.trim().to_string(), Self::from_str(maybe_due_str)?))
     }
 }

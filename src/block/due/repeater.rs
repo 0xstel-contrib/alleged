@@ -29,18 +29,18 @@ impl fmt::Display for RepeatFrom {
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 /// A Logseq `SCHEDULED` repeater rule. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
-pub struct ScheduledRepeater {
+pub struct DueRepeater {
     pub rule: RepeatFrom,
     pub duration: Duration,
 }
 
-impl fmt::Display for ScheduledRepeater {
+impl fmt::Display for DueRepeater {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.rule, format_duration(self.duration))
     }
 }
 
-impl FromStr for ScheduledRepeater {
+impl FromStr for DueRepeater {
     type Err = Alleged;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
