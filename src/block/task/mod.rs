@@ -9,8 +9,8 @@ use crate::block::{BlockImpl, Due};
 use comrak::nodes::NodeValue;
 use std::{fmt, str::FromStr};
 
-#[derive(Debug, Clone)]
 /// Representation of a task, with optional priority and scheduling. See <https://docs.logseq.com/#/page/tasks>
+#[derive(Debug, Clone)]
 pub struct Task<'a> {
     pub(crate) inner: TaskBlockNode<'a>,
     pub marker: TaskMarker,
@@ -71,6 +71,9 @@ impl BlockImpl for Task<'_> {
     }
     fn plain(&self) -> String {
         self.text.clone()
+    }
+    fn due(&self) -> Option<Due> {
+        self.due.clone()
     }
 }
 

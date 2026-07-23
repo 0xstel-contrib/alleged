@@ -12,9 +12,9 @@ use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 use time::{Date, Time, Weekday, error::InvalidVariant};
 
+/// Representation of a `Due` Logseq string property. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-/// Representation of a `Due` Logseq string property. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
 pub struct Due {
     pub date: Date,
     pub day: Weekday,

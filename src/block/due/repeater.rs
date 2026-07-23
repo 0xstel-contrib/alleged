@@ -4,9 +4,9 @@ use humantime::{Duration as HumanDuration, format_duration};
 use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr, time::Duration};
 
+/// A Logseq `SCHEDULED` repeater rule type. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-/// A Logseq `SCHEDULED` repeater rule type. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
 pub enum RepeatFrom {
     // ".+1d"
     Completion,
@@ -26,9 +26,9 @@ impl fmt::Display for RepeatFrom {
     }
 }
 
+/// A Logseq `SCHEDULED` repeater rule. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-/// A Logseq `SCHEDULED` repeater rule. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
 pub struct DueRepeater {
     pub rule: RepeatFrom,
     pub duration: Duration,
