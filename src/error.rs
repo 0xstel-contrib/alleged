@@ -16,8 +16,8 @@ pub enum Alleged {
     Entry(#[from] EntryError),
     #[error("Repeater parsing failed: {0}")]
     ParseRepeater(#[from] ParseRepeaterErr),
-    #[error("`SCHEDULED` parsing failed: {0}")]
-    ParseScheduled(#[from] ParseScheduledError),
+    #[error("Due parsing failed: {0}")]
+    ParseScheduled(#[from] ParseDueError),
     #[error("Got an I/O error: {0}")]
     IO(#[from] io::Error),
     #[error("Got a formatting error: {0}")]
@@ -87,5 +87,7 @@ pub enum TaskPriorityError {
 }
 
 #[derive(Error, Debug)]
-#[error("Failed to parse the `SCHEDULED` data!")]
-pub struct ParseScheduledError;
+pub enum ParseDueError {
+    #[error("Invalid input!")]
+    InvalidInput,
+}

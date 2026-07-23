@@ -1,15 +1,11 @@
 mod marker;
 mod node;
 mod priority;
-mod repeater;
-mod scheduled;
 pub use marker::*;
 pub use node::*;
 pub use priority::*;
-pub use repeater::*;
-pub use scheduled::*;
 
-use crate::{block::BlockImpl, consts::SCHEDULED_DELIM};
+use crate::block::{BlockImpl, Due};
 use comrak::nodes::NodeValue;
 use std::{fmt, str::FromStr};
 
@@ -20,7 +16,7 @@ pub struct Task<'a> {
     pub marker: TaskMarker,
     pub text: String,
     pub priority: Option<TaskPriority>,
-    pub scheduled: Option<Scheduled>,
+    pub due: Option<Due>,
 }
 
 impl fmt::Display for Task<'_> {
@@ -32,8 +28,8 @@ impl fmt::Display for Task<'_> {
 
         write!(f, "{}", self.text)?;
 
-        if let Some(scheduled) = &self.scheduled {
-            write!(f, "\n{scheduled}")?;
+        if let Some(due) = &self.due {
+            write!(f, "\n{due}")?;
         }
 
         Ok(())
@@ -56,16 +52,15 @@ impl<'a> From<TaskBlockNode<'a>> for Task<'a> {
         });
 
         let text = words.collect::<Vec<_>>().join(" ");
-        let mut text_parts = text.splitn(2, SCHEDULED_DELIM);
+        let (text, due) =
+            Due::extract_and(&text).map_or((text, None), |(text, due)| (text, Some(due)));
 
         Self {
-            text: text_parts.next().unwrap_or("").trim().to_string(),
-            scheduled: text_parts
-                .next()
-                .and_then(|part| Scheduled::from_str(part).ok()),
             inner,
             marker,
+            text,
             priority,
+            due,
         }
     }
 }

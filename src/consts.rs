@@ -6,6 +6,9 @@ use regex_lite::Regex;
 use std::sync::LazyLock;
 use time::{format_description::StaticFormatDescription, macros::format_description};
 
+pub const GRAPH_LAYOUT: [&str; 3] = ["journals", "logseq", "pages"];
+pub static DEFAULT_EXCLUDE: [&str; 2] = ["logseq", "contents.md"];
+
 pub static COMRAK_OPTIONS: LazyLock<Options<'static>> = LazyLock::new(|| Options {
     extension: Extension {
         strikethrough: true,
@@ -22,8 +25,6 @@ pub static COMRAK_OPTIONS: LazyLock<Options<'static>> = LazyLock::new(|| Options
     ..Default::default()
 });
 
-pub static DEFAULT_EXCLUDE: [&str; 2] = ["logseq", "contents.md"];
-
 pub static JOURNAL_FORMAT: StaticFormatDescription = format_description!("[year]_[month]_[day]");
 pub static DATE_FORMAT: StaticFormatDescription = format_description!("[year]-[month]-[day]");
 pub static TIME_FORMAT: StaticFormatDescription = format_description!("[hour]:[minute]");
@@ -32,12 +33,12 @@ pub static TIME_FORMAT: StaticFormatDescription = format_description!("[hour]:[m
 pub static PROPERTY_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^(?P<key>[a-zA-Z0-9_-]+)::\s+(?P<value>.*)$").unwrap());
 #[allow(clippy::unwrap_used)]
-pub static SCHEDULED_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+pub static DUE_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"SCHEDULED:\s*<(\d{4}-\d{2}-\d{2})\s+([A-Za-z]{3})(?:\s+(\d{1,2}:\d{2}))?(?:\s+([\.\+]*\+\d+[ymwdh]))?>$"
+        r"(SCHEDULED|DEADLINE):\s*<(\d{4}-\d{2}-\d{2})\s+([A-Za-z]{3})(?:\s+(\d{1,2}:\d{2}))?(?:\s+([\.\+]*\+\d+[ymwdh]))?>$"
     ).unwrap()
 });
 
-pub const GRAPH_LAYOUT: [&str; 3] = ["journals", "logseq", "pages"];
 pub const SCHEDULED_DELIM: &str = "SCHEDULED:";
-pub const LOGSEQ_TOKENS: [&str; 1] = [SCHEDULED_DELIM];
+pub const DEADLINE_DELIM: &str = "DEADLINE:";
+pub static DUE_DELIMS: [&str; 2] = [SCHEDULED_DELIM, DEADLINE_DELIM];

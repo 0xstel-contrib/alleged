@@ -1,11 +1,7 @@
 mod node;
+use crate::block::{BlockImpl, Due, extract_text};
 use comrak::nodes::NodeValue;
 pub use node::*;
-
-use crate::{
-    block::{BlockImpl, extract_text},
-    consts::LOGSEQ_TOKENS,
-};
 
 #[derive(Debug, Clone)]
 /// A Logseq block with normal text content.
@@ -26,11 +22,11 @@ impl BlockImpl for Text<'_> {
         text
     }
     fn plain(&self) -> String {
-        let raw = self.raw();
-
-        raw.lines()
-            .filter(|line| LOGSEQ_TOKENS.iter().any(|tok| !line.contains(tok)))
-            .collect()
+        if let Ok((text, _)) = Due::extract_and(&self.raw()) {
+            text
+        } else {
+            self.raw()
+        }
     }
 }
 
@@ -45,5 +41,10 @@ impl Text<'_> {
                 *text = callback(text).into();
             }
         }
+    }
+    /// If this text block has a "due" marker (`SCHEDULED`/`DEADLINE`), parse and return it.
+    #[must_use]
+    pub fn due(&self) -> Option<Due> {
+        Due::extract_and(&self.raw()).ok().map(|(_, due)| due)
     }
 }
