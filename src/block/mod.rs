@@ -1,12 +1,14 @@
 mod due;
 mod r#impl;
 mod node;
+mod property;
 mod task;
 mod text;
 
 pub use due::*;
 pub use r#impl::*;
 pub use node::*;
+pub use property::*;
 pub use task::*;
 pub use text::*;
 
@@ -35,6 +37,16 @@ pub(crate) fn extract_text<'a>(node: &'a AstNode<'a>, text: &mut String) {
 pub enum Block<'a> {
     Text(Text<'a>, usize),
     Task(Task<'a>, usize),
+}
+
+#[cfg(feature = "id")]
+impl<'a> Block<'a> {
+    pub(crate) fn node(&self) -> Node<'a> {
+        match self {
+            Self::Text(text, _) => text.inner.as_ref(),
+            Self::Task(task, _) => task.inner.as_ref(),
+        }
+    }
 }
 
 impl<'a> From<Task<'a>> for Block<'a> {

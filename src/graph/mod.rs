@@ -3,8 +3,15 @@ mod entry;
 pub use builder::*;
 pub use entry::*;
 
+#[cfg(feature = "id")]
+use crate::block::{BlockImpl, BlockProperties, new_id_property};
 use crate::error::Alleged;
 use comrak::Options;
+#[cfg(feature = "id")]
+use comrak::{
+    Arena,
+    nodes::{AstNode, NodeValue},
+};
 use std::{ffi::OsStr, fs, path::PathBuf, sync::Arc};
 use time::{Date, OffsetDateTime};
 use walkdir::{DirEntry, WalkDir};
@@ -21,6 +28,31 @@ pub struct Graph {
 }
 
 impl Graph {
+    #[cfg(feature = "id")]
+    pub(crate) fn populate_ids(&self) -> Result<(), Alleged> {
+        for mut entry in self.entries() {
+            let arena = Arena::new();
+            let Document(root, blocks) = entry.blocks(&arena);
+
+            for block in blocks {
+                let BlockProperties(properties) = block.properties();
+                if !properties.contains_key("id") {
+                    #[allow(clippy::unwrap_used)]
+                    let block_node = block.node();
+                    let softbreak_node = arena.alloc(AstNode::from(NodeValue::SoftBreak));
+                    let text_node =
+                        arena.alloc(AstNode::from(NodeValue::Text(new_id_property().into())));
+                    block_node.append(softbreak_node);
+                    block_node.append(text_node);
+                }
+            }
+
+            entry.update_buffer(root)?;
+            self.save(&mut entry)?;
+        }
+
+        Ok(())
+    }
     fn is_excluded(&self, entry: &DirEntry) -> bool {
         entry
             .file_name()

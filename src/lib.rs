@@ -8,8 +8,6 @@ pub(crate) mod consts;
 pub mod error;
 /// Graph-related code, and the main entrypoint of this library
 pub mod graph;
-/// Logseq page properties
-pub mod properties;
 
 /// Some functions need the [`comrak::Arena`] type. This module exposes the entire [`comrak`] library so you don't need to add it to your own crate to use it
 pub mod ext {
@@ -22,5 +20,4 @@ pub mod prelude {
     pub use crate::error::*;
     pub use crate::ext::comrak::Arena;
     pub use crate::graph::*;
-    pub use crate::properties::*;
 }

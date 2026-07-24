@@ -1,4 +1,4 @@
-use crate::{consts::PROPERTY_REGEX, properties::Properties};
+use crate::{consts::PROPERTY_REGEX, graph::BufferProperties};
 use std::{
     convert::Infallible,
     fmt::{self, Write},
@@ -9,7 +9,7 @@ use std::{
 /// Representation of a file in your Logseq graph
 pub struct EntryBuffer {
     /// A file's (parsed) Logseq properties
-    pub properties: Option<Properties>,
+    pub properties: Option<BufferProperties>,
     /// Everything after the properties section, if it exists -- otherwise just the entire file
     pub content: String,
 }
@@ -25,7 +25,7 @@ impl FromStr for EntryBuffer {
             if let Some((_, [key, value])) =
                 PROPERTY_REGEX.captures(line).map(|caps| caps.extract())
             {
-                let properties: &mut Properties = maybe_properties.get_or_insert_default();
+                let properties: &mut BufferProperties = maybe_properties.get_or_insert_default();
                 match key {
                     "icon" => properties.icon = Some(value.to_string()),
                     "title" => properties.title = Some(value.to_string()),

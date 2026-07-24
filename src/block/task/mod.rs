@@ -5,7 +5,7 @@ pub use marker::*;
 pub use node::*;
 pub use priority::*;
 
-use crate::block::{BlockImpl, Due};
+use crate::block::{BlockImpl, BlockProperties, BlockPropertyImpl, Due, extract_text};
 use comrak::nodes::NodeValue;
 use std::{fmt, str::FromStr};
 
@@ -39,8 +39,10 @@ impl fmt::Display for Task<'_> {
 #[allow(clippy::fallible_impl_from)]
 impl<'a> From<TaskBlockNode<'a>> for Task<'a> {
     fn from(inner: TaskBlockNode<'a>) -> Self {
-        let inner_text = inner.as_ref().collect_text();
-        let mut words = inner_text.split_whitespace().peekable();
+        let mut raw_text = String::new();
+        extract_text(inner.as_ref(), &mut raw_text);
+        let (content_text, _) = BlockProperties::extract_and(&raw_text).unwrap();
+        let mut words = content_text.split_whitespace().peekable();
 
         // NOTE: `TaskBlockNode` is a newtype which validates that the first word
         // NOTE: is a task marker, so **this will never panic**.
@@ -67,7 +69,9 @@ impl<'a> From<TaskBlockNode<'a>> for Task<'a> {
 
 impl BlockImpl for Task<'_> {
     fn raw(&self) -> String {
-        self.to_string()
+        let mut text = String::new();
+        extract_text(self.inner.as_ref(), &mut text);
+        text
     }
     fn plain(&self) -> String {
         self.text.clone()

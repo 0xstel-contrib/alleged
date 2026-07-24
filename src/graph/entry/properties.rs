@@ -9,7 +9,7 @@ use std::fmt;
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "python", pyclass(from_py_object, get_all))]
-pub struct Properties {
+pub struct BufferProperties {
     /// Icon identifier
     pub icon: Option<String>,
     /// Overrides page title and allows it to be different from the filename
@@ -32,7 +32,7 @@ pub struct Properties {
     pub custom: FxHashMap<String, String>,
 }
 
-impl fmt::Display for Properties {
+impl fmt::Display for BufferProperties {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(icon) = &self.icon {
             writeln!(f, "icon:: {icon}")?;
@@ -71,7 +71,7 @@ impl fmt::Display for Properties {
 }
 
 #[cfg_attr(feature = "python", pymethods)]
-impl Properties {
+impl BufferProperties {
     fn __repr__(&self) -> String {
         format!("{self:?}")
     }

@@ -1,6 +1,6 @@
 use crate::{
     consts::{COMRAK_OPTIONS, DEFAULT_EXCLUDE},
-    error::GraphBuilderError,
+    error::{Alleged, GraphBuilderError},
     graph::Graph,
 };
 use comrak::Options;
@@ -11,6 +11,8 @@ pub struct GraphBuilder {
     comrak_options: Option<Options<'static>>,
     exclude: Vec<String>,
     root: Option<PathBuf>,
+    #[cfg(feature = "id")]
+    populate_ids: bool,
 }
 
 impl Default for GraphBuilder {
@@ -19,6 +21,8 @@ impl Default for GraphBuilder {
             comrak_options: None,
             exclude: DEFAULT_EXCLUDE.into_iter().map(String::from).collect(),
             root: None,
+            #[cfg(feature = "id")]
+            populate_ids: false,
         }
     }
 }
@@ -42,21 +46,34 @@ impl GraphBuilder {
         self.root = Some(root);
         self
     }
+    /// Whether or not to pre-populate blocks with IDs. Defaults to `true`
+    #[cfg(feature = "id")]
+    #[must_use]
+    pub const fn populate_ids(mut self) -> Self {
+        self.populate_ids = true;
+        self
+    }
     /// Try to build a [`crate::graph::Graph`]
     ///
     /// # Errors
     /// Fails if the root directory isn't set.
-    pub fn build(self) -> Result<Graph, GraphBuilderError> {
+    pub fn build(self) -> Result<Graph, Alleged> {
         let root = self.root.ok_or(GraphBuilderError::UndefinedRootDirectory)?;
         let comrak_options = Arc::new(
             self.comrak_options
                 .unwrap_or_else(|| COMRAK_OPTIONS.clone()),
         );
-
-        Ok(Graph {
+        let graph = Graph {
             comrak_options,
             root,
             exclude: self.exclude,
-        })
+        };
+
+        #[cfg(feature = "id")]
+        if self.populate_ids {
+            graph.populate_ids()?;
+        }
+
+        Ok(graph)
     }
 }

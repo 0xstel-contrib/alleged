@@ -1,13 +1,14 @@
 mod buffer;
 mod kind;
+mod properties;
 pub use buffer::*;
 pub use kind::*;
+pub use properties::*;
 
 use crate::{
     block::Block,
     consts::GRAPH_LAYOUT,
     error::{Alleged, EntryError},
-    properties::Properties,
 };
 use comrak::{Arena, Node, Options, format_commonmark, parse_document};
 use std::{
@@ -82,7 +83,7 @@ impl GraphEntry {
         self.graph.join(self.kind.as_relative_path())
     }
     /// Returns the page's properties
-    pub fn properties(&mut self) -> Option<Properties> {
+    pub fn properties(&mut self) -> Option<BufferProperties> {
         self.buffer().properties
     }
     /// Returns a [`Document`] with an iterator over the entry's blocks. Returns a reference to the document root [`Node`], which you need to pass to [`GraphEntry::update_buffer`] if you update the blocks
