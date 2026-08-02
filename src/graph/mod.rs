@@ -3,10 +3,7 @@ mod entry;
 pub use builder::*;
 pub use entry::*;
 
-use crate::block::{BlockImpl, add_logseq_id_to};
 use crate::error::Alleged;
-use crate::properties::Properties;
-use comrak::Arena;
 use comrak::Options;
 use std::{ffi::OsStr, fs, path::PathBuf, sync::Arc};
 use time::{Date, OffsetDateTime};
@@ -24,24 +21,6 @@ pub struct Graph {
 }
 
 impl Graph {
-    pub(crate) fn populate_ids(&self) -> Result<(), Alleged> {
-        for mut entry in self.entries() {
-            let arena = Arena::new();
-            let Document(root, blocks) = entry.blocks(&arena);
-
-            for block in blocks {
-                let Properties(properties) = block.properties();
-                if !properties.contains_key("id") {
-                    add_logseq_id_to(block.node(), &arena);
-                }
-            }
-
-            entry.update_buffer(root)?;
-            self.save(&mut entry)?;
-        }
-
-        Ok(())
-    }
     fn is_excluded(&self, entry: &DirEntry) -> bool {
         entry
             .file_name()

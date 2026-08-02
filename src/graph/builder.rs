@@ -1,9 +1,11 @@
 use crate::{
+    block::{BlockImpl, add_logseq_id_to},
     consts::{COMRAK_OPTIONS, DEFAULT_EXCLUDE},
     error::{Alleged, GraphBuilderError},
-    graph::Graph,
+    graph::{Document, Graph},
+    properties::Properties,
 };
-use comrak::Options;
+use comrak::{Arena, Options};
 use std::{path::PathBuf, sync::Arc};
 
 /// Helper struct to construct a [`Graph`] object. You only need to define `root`, everything else has defaults :)
@@ -67,7 +69,20 @@ impl GraphBuilder {
         };
 
         if self.populate_ids {
-            graph.populate_ids()?;
+            for mut entry in graph.entries() {
+                let arena = Arena::new();
+                let Document(root, blocks) = entry.blocks(&arena);
+
+                for block in blocks {
+                    let Properties(properties) = block.properties();
+                    if !properties.contains_key("id") {
+                        add_logseq_id_to(block.node(), &arena);
+                    }
+                }
+
+                entry.update_buffer(root)?;
+                graph.save(&mut entry)?;
+            }
         }
 
         Ok(graph)
