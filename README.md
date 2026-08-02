@@ -8,6 +8,7 @@ Append to today's journal entry ([`examples/append_to_today.rs`](./examples/appe
 
 ```rust
 use alleged_lib::graph::Graph;
+use std::fs;
 
 fn main() {
     let notes = Graph::builder()
@@ -19,6 +20,9 @@ fn main() {
     today.append_block("Hello from Rust code!", 0).unwrap();
 
     notes.save(&mut today).unwrap();
+
+    let today_content = fs::read_to_string(today.path()).unwrap();
+    assert!(today_content.contains("Hello from Rust code!"));
 }
 ```
 
