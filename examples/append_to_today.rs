@@ -2,7 +2,7 @@ use alleged_lib::graph::Graph;
 
 fn main() {
     let notes = Graph::builder()
-        .root("assets/my_graph".into())
+        .root("assets/example_graph".into())
         .build()
         .unwrap();
 
