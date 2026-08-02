@@ -5,12 +5,13 @@ pub use marker::*;
 pub use node::*;
 pub use priority::*;
 
-use crate::block::{BlockImpl, Due};
+use crate::block::{BlockImpl, BlockLabel, Due, extract_text};
+use crate::properties::Properties;
 use comrak::nodes::NodeValue;
 use std::{fmt, str::FromStr};
 
-#[derive(Debug, Clone)]
 /// Representation of a task, with optional priority and scheduling. See <https://docs.logseq.com/#/page/tasks>
+#[derive(Debug, Clone)]
 pub struct Task<'a> {
     pub(crate) inner: TaskBlockNode<'a>,
     pub marker: TaskMarker,
@@ -39,8 +40,10 @@ impl fmt::Display for Task<'_> {
 #[allow(clippy::fallible_impl_from)]
 impl<'a> From<TaskBlockNode<'a>> for Task<'a> {
     fn from(inner: TaskBlockNode<'a>) -> Self {
-        let inner_text = inner.as_ref().collect_text();
-        let mut words = inner_text.split_whitespace().peekable();
+        let mut content_text = String::new();
+        extract_text(inner.as_ref(), &mut content_text);
+        _ = Properties::from_block_modify(&mut content_text);
+        let mut words = content_text.split_whitespace().peekable();
 
         // NOTE: `TaskBlockNode` is a newtype which validates that the first word
         // NOTE: is a task marker, so **this will never panic**.
@@ -53,7 +56,7 @@ impl<'a> From<TaskBlockNode<'a>> for Task<'a> {
 
         let text = words.collect::<Vec<_>>().join(" ");
         let (text, due) =
-            Due::extract_and(&text).map_or((text, None), |(text, due)| (text, Some(due)));
+            Due::extract_modify(&text).map_or((text, None), |(text, due)| (text, Some(due)));
 
         Self {
             inner,
@@ -67,10 +70,15 @@ impl<'a> From<TaskBlockNode<'a>> for Task<'a> {
 
 impl BlockImpl for Task<'_> {
     fn raw(&self) -> String {
-        self.to_string()
+        let mut text = String::new();
+        extract_text(self.inner.as_ref(), &mut text);
+        text
     }
     fn plain(&self) -> String {
         self.text.clone()
+    }
+    fn due(&self) -> Option<Due> {
+        self.due.clone()
     }
 }
 

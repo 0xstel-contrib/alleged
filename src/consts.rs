@@ -41,4 +41,4 @@ pub static DUE_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 
 pub const SCHEDULED_DELIM: &str = "SCHEDULED:";
 pub const DEADLINE_DELIM: &str = "DEADLINE:";
-pub static DUE_DELIMS: [&str; 2] = [SCHEDULED_DELIM, DEADLINE_DELIM];
+pub const DUE_DELIMS: [&str; 2] = [SCHEDULED_DELIM, DEADLINE_DELIM];

@@ -4,17 +4,22 @@ pub use kind::*;
 pub use repeater::*;
 
 use crate::{
+    block::BlockLabel,
     consts::{DATE_FORMAT, DUE_DELIMS, DUE_REGEX, TIME_FORMAT},
     error::{Alleged, ParseDueError},
 };
+#[cfg(feature = "icalendar")]
+use chrono::NaiveDate;
+#[cfg(feature = "icalendar")]
+use icalendar::{CalendarDateTime, DatePerhapsTime};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 use time::{Date, Time, Weekday, error::InvalidVariant};
 
+/// Representation of a `Due` Logseq string property. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-/// Representation of a `Due` Logseq string property. See [the official Logseq documentation](https://docs.logseq.com/#/page/tasks?anchor=ls-block-6a0878b3-8530-43f4-8ef6-268a31b39879)
 pub struct Due {
     pub date: Date,
     pub day: Weekday,
@@ -102,8 +107,45 @@ impl FromStr for Due {
     }
 }
 
-impl Due {
-    pub(crate) fn extract_and(s: &str) -> Result<(String, Self), Alleged> {
+// Date data is already guaranteed valid because we have a parsed instance from `time`, so this is infallible.
+// TODO: I think I wanted to change this from `Into::DatePerhapsTime`-> `TryInto::Event` & `TryInto::Todo` ?
+#[allow(clippy::fallible_impl_from)]
+#[cfg(feature = "icalendar")]
+impl From<Due> for DatePerhapsTime {
+    fn from(due: Due) -> Self {
+        // NOTE: We already know our date data is valid because we have a parsed object from `time`, so **this will never panic.**
+        #[allow(clippy::unwrap_used)]
+        let date_naive = NaiveDate::from_ymd_opt(
+            due.date.year(),
+            due.date.month() as u32,
+            due.date.day().into(),
+        )
+        .unwrap();
+
+        // NOTE: We already know our date data is valid because we have a parsed object from `time`, so **this will never panic.**
+        #[allow(clippy::unwrap_used)]
+        due.time.map_or_else(
+            || date_naive.into(),
+            |time| {
+                CalendarDateTime::Floating(
+                    date_naive
+                        .and_hms_opt(
+                            time.hour().into(),
+                            time.minute().into(),
+                            time.second().into(),
+                        )
+                        .unwrap(),
+                )
+                .into()
+            },
+        )
+    }
+}
+
+impl BlockLabel for Due {
+    type Error = Alleged;
+
+    fn extract_modify(s: &str) -> Result<(String, Self), Self::Error> {
         let (text, maybe_due_str) = DUE_DELIMS
             .iter()
             .find_map(|d| s.find(d))

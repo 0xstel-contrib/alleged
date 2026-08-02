@@ -1,19 +1,18 @@
-mod due;
 mod r#impl;
+mod label;
 mod node;
-mod task;
 mod text;
 
-pub use due::*;
 pub use r#impl::*;
+pub use label::*;
 pub use node::*;
-pub use task::*;
 pub use text::*;
 
 use comrak::{
-    Node,
+    Arena, Node,
     nodes::{AstNode, NodeValue},
 };
+use uuid::Uuid;
 
 pub(crate) fn extract_text<'a>(node: &'a AstNode<'a>, text: &mut String) {
     match &node.data().value {
@@ -30,11 +29,29 @@ pub(crate) fn extract_text<'a>(node: &'a AstNode<'a>, text: &mut String) {
     }
 }
 
-#[derive(Debug, Clone)]
+pub(crate) fn add_logseq_id_to<'a>(block_node: Node<'a>, arena: &'a Arena<'a>) {
+    let softbreak_node = arena.alloc(AstNode::from(NodeValue::SoftBreak));
+    let text_node = arena.alloc(AstNode::from(NodeValue::Text(
+        format!("id:: {}", Uuid::new_v4()).into(),
+    )));
+    block_node.append(softbreak_node);
+    block_node.append(text_node);
+}
+
 /// A Logseq block -- either text or a task. Each variant is a tuple with the underlying object and the block's depth.
+#[derive(Debug, Clone)]
 pub enum Block<'a> {
     Text(Text<'a>, usize),
     Task(Task<'a>, usize),
+}
+
+impl<'a> Block<'a> {
+    pub(crate) fn node(&self) -> Node<'a> {
+        match self {
+            Self::Text(text, _) => text.inner.as_ref(),
+            Self::Task(task, _) => task.inner.as_ref(),
+        }
+    }
 }
 
 impl<'a> From<Task<'a>> for Block<'a> {
