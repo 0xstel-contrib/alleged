@@ -1,14 +1,13 @@
 mod buffer;
 mod kind;
-mod properties;
 pub use buffer::*;
 pub use kind::*;
-pub use properties::*;
 
 use crate::{
     block::Block,
     consts::GRAPH_LAYOUT,
     error::{Alleged, EntryError},
+    properties::BufferProperties,
 };
 use comrak::{Arena, Node, Options, format_commonmark, parse_document};
 use std::{

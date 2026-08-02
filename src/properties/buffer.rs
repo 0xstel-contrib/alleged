@@ -5,6 +5,8 @@ use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+use crate::properties::Properties;
+
 /// The properties of a page in your Logseq graph. See <https://docs.logseq.com/#/page/properties>
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -30,6 +32,40 @@ pub struct BufferProperties {
     pub exclude_from_graph_view: bool,
     /// Custom page properties (i.e. anything that _isn't_ one of the above)
     pub custom: FxHashMap<String, String>,
+}
+
+impl From<Properties> for BufferProperties {
+    fn from(value: Properties) -> Self {
+        let Properties(basic_properties) = value;
+        let mut buffer_properties = Self::default();
+
+        for (key, value) in basic_properties {
+            match key.as_str() {
+                "icon" => buffer_properties.icon = Some(value),
+                "title" => buffer_properties.title = Some(value),
+                "tags" => buffer_properties.tags = value.split(',').map(String::from).collect(),
+                "template" => buffer_properties.template = Some(value),
+                "template_including_parent" => {
+                    buffer_properties.template_including_parent =
+                        value.trim().parse().unwrap_or(false);
+                }
+                "alias" => buffer_properties.alias = value.split(',').map(String::from).collect(),
+                "filters" => {
+                    buffer_properties.filters = value.split(',').map(String::from).collect();
+                }
+                "public" => buffer_properties.public = value.trim().parse().unwrap_or(false),
+                "exclude_from_graph_view" => {
+                    buffer_properties.exclude_from_graph_view =
+                        value.trim().parse().unwrap_or(false);
+                }
+                _ => {
+                    _ = buffer_properties.custom.insert(key, value);
+                }
+            }
+        }
+
+        buffer_properties
+    }
 }
 
 impl fmt::Display for BufferProperties {

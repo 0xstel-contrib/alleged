@@ -11,7 +11,6 @@ pub struct GraphBuilder {
     comrak_options: Option<Options<'static>>,
     exclude: Vec<String>,
     root: Option<PathBuf>,
-    #[cfg(feature = "id")]
     populate_ids: bool,
 }
 
@@ -21,7 +20,6 @@ impl Default for GraphBuilder {
             comrak_options: None,
             exclude: DEFAULT_EXCLUDE.into_iter().map(String::from).collect(),
             root: None,
-            #[cfg(feature = "id")]
             populate_ids: false,
         }
     }
@@ -47,7 +45,6 @@ impl GraphBuilder {
         self
     }
     /// Whether or not to pre-populate blocks with IDs. Defaults to `true`
-    #[cfg(feature = "id")]
     #[must_use]
     pub const fn populate_ids(mut self) -> Self {
         self.populate_ids = true;
@@ -69,7 +66,6 @@ impl GraphBuilder {
             exclude: self.exclude,
         };
 
-        #[cfg(feature = "id")]
         if self.populate_ids {
             graph.populate_ids()?;
         }

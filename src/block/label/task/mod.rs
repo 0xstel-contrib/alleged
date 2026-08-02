@@ -5,7 +5,8 @@ pub use marker::*;
 pub use node::*;
 pub use priority::*;
 
-use crate::block::{BlockImpl, BlockProperties, BlockPropertyImpl, Due, extract_text};
+use crate::block::{BlockImpl, BlockLabel, Due, extract_text};
+use crate::properties::Properties;
 use comrak::nodes::NodeValue;
 use std::{fmt, str::FromStr};
 
@@ -39,9 +40,9 @@ impl fmt::Display for Task<'_> {
 #[allow(clippy::fallible_impl_from)]
 impl<'a> From<TaskBlockNode<'a>> for Task<'a> {
     fn from(inner: TaskBlockNode<'a>) -> Self {
-        let mut raw_text = String::new();
-        extract_text(inner.as_ref(), &mut raw_text);
-        let (content_text, _) = BlockProperties::extract_and(&raw_text).unwrap();
+        let mut content_text = String::new();
+        extract_text(inner.as_ref(), &mut content_text);
+        _ = Properties::from_block_modify(&mut content_text);
         let mut words = content_text.split_whitespace().peekable();
 
         // NOTE: `TaskBlockNode` is a newtype which validates that the first word
@@ -55,7 +56,7 @@ impl<'a> From<TaskBlockNode<'a>> for Task<'a> {
 
         let text = words.collect::<Vec<_>>().join(" ");
         let (text, due) =
-            Due::extract_and(&text).map_or((text, None), |(text, due)| (text, Some(due)));
+            Due::extract_modify(&text).map_or((text, None), |(text, due)| (text, Some(due)));
 
         Self {
             inner,

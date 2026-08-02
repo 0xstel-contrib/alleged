@@ -4,7 +4,7 @@ pub use kind::*;
 pub use repeater::*;
 
 use crate::{
-    block::BlockPropertyImpl,
+    block::BlockLabel,
     consts::{DATE_FORMAT, DUE_DELIMS, DUE_REGEX, TIME_FORMAT},
     error::{Alleged, ParseDueError},
 };
@@ -108,6 +108,7 @@ impl FromStr for Due {
 }
 
 // Date data is already guaranteed valid because we have a parsed instance from `time`, so this is infallible.
+// TODO: I think I wanted to change this from `Into::DatePerhapsTime`-> `TryInto::Event` & `TryInto::Todo` ?
 #[allow(clippy::fallible_impl_from)]
 #[cfg(feature = "icalendar")]
 impl From<Due> for DatePerhapsTime {
@@ -141,10 +142,10 @@ impl From<Due> for DatePerhapsTime {
     }
 }
 
-impl BlockPropertyImpl for Due {
+impl BlockLabel for Due {
     type Error = Alleged;
 
-    fn extract_and(s: &str) -> Result<(String, Self), Self::Error> {
+    fn extract_modify(s: &str) -> Result<(String, Self), Self::Error> {
         let (text, maybe_due_str) = DUE_DELIMS
             .iter()
             .find_map(|d| s.find(d))
