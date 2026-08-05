@@ -28,10 +28,21 @@ pub enum CliSubCommand {
     Tui(TuiCommand),
 }
 
+#[cfg(feature = "tui")]
+impl Default for CliSubCommand {
+    fn default() -> Self {
+        Self::Tui(TuiCommand::default())
+    }
+}
+
 /// command-line interface for logseq
 #[derive(FromArgs, Debug)]
 #[argh(help_triggers("-h", "--help", "help"))]
 pub struct Cli {
+    #[cfg(feature = "tui")]
+    #[argh(subcommand)]
+    pub command: Option<CliSubCommand>,
+    #[cfg(not(feature = "tui"))]
     #[argh(subcommand)]
     pub command: CliSubCommand,
     /// path to your logseq-og graph [default: $HOME/Documents/notes]

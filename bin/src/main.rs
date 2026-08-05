@@ -45,13 +45,17 @@ async fn main() -> Result<()> {
 
     match Cli::from_args(&[current_exe], &args_env) {
         Ok(args) => {
+            #[cfg(feature = "tui")]
+            let command = args.command.unwrap_or_default();
+            #[cfg(not(feature = "tui"))]
+            let command = args.command;
             let graph = Graph::builder()
                 .root(args.graph)
                 .populate_ids()
                 .exclude(args.exclude)
                 .build()?;
 
-            match args.command {
+            match command {
                 #[cfg(feature = "api")]
                 CliSubCommand::Api(api_cmd) => {
                     let graph = Arc::new(graph);
