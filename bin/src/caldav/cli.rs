@@ -1,6 +1,13 @@
-use crate::{CALDAV_SERVER, CALDAV_USER, SyncPrioritise};
+use crate::{CALDAV_SERVER, CALDAV_USER, LogseqCaldav, SyncPrioritise};
+use alleged_lib::graph::Graph;
+use anyhow::Result;
 use argh::FromArgs;
 use http::Uri;
+use hyper_rustls::HttpsConnectorBuilder;
+use hyper_util::{client::legacy::Client, rt::TokioExecutor};
+use libdav::dav::WebDavClient;
+use tower_http::auth::AddAuthorization;
+use vstorage::caldav::CalDavStorage;
 
 fn default_caldav_uri() -> Uri {
     // This const is a valid URI.
@@ -33,4 +40,37 @@ pub struct CalDavSyncCommand {
     /// whether to prioritise logseq or caldav for syncing task statuses [default: caldav]
     #[argh(option, short = 'p', default = "default_sync_prioritise()")]
     pub prioritise: SyncPrioritise,
+}
+
+impl CalDavSyncCommand {
+    // FIXME: Async function is not `Send`!
+    pub async fn sync(self, password: String, graph: Graph) -> Result<()> {
+        let https_connector = HttpsConnectorBuilder::new()
+            .with_native_roots()?
+            .https_or_http()
+            .enable_http1()
+            .build();
+        let client = AddAuthorization::basic(
+            Client::builder(TokioExecutor::new()).build(https_connector),
+            &self.user,
+            &password,
+        );
+        let webdav = WebDavClient::new(self.server, client);
+        let storage = CalDavStorage::builder(webdav).build().await?;
+
+        let handler = LogseqCaldav::builder()
+            .graph(graph)
+            .storage(storage)
+            .collection(Uri::try_from(self.collection.trim_end_matches('/'))?)
+            .build();
+
+        match self.prioritise {
+            SyncPrioritise::CalDav => handler.caldav_statuses_to_graph().await?,
+            SyncPrioritise::Logseq => unimplemented!("SyncPrioritise::Logseq"),
+        }
+
+        handler.graph_items_to_caldav().await?;
+
+        Ok(())
+    }
 }

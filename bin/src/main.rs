@@ -27,15 +27,6 @@ use std::env;
 #[cfg(any(feature = "api", feature = "tui"))]
 use std::sync::Arc;
 use tokio;
-#[cfg(feature = "caldav")]
-use {
-    http::Uri,
-    hyper_rustls::HttpsConnectorBuilder,
-    hyper_util::{client::legacy::Client, rt::TokioExecutor},
-    libdav::dav::WebDavClient,
-    tower_http::auth::AddAuthorization,
-    vstorage::caldav::CalDavStorage,
-};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -75,35 +66,10 @@ async fn main() -> Result<()> {
                     .await?;
                 }
                 #[cfg(feature = "caldav")]
-                CliSubCommand::CalDavSync(caldav_args) => {
-                    let caldav_pass = env::var("CALDAV_PASS")
+                CliSubCommand::CalDavSync(caldav_cmd) => {
+                    let password = env::var("CALDAV_PASS")
                         .expect("ERROR: environment variable `CALDAV_PASS` unset!");
-
-                    let https_connector = HttpsConnectorBuilder::new()
-                        .with_native_roots()?
-                        .https_or_http()
-                        .enable_http1()
-                        .build();
-                    let client = AddAuthorization::basic(
-                        Client::builder(TokioExecutor::new()).build(https_connector),
-                        &caldav_args.user,
-                        &caldav_pass,
-                    );
-                    let webdav = WebDavClient::new(caldav_args.server, client);
-                    let storage = CalDavStorage::builder(webdav).build().await?;
-
-                    let handler = LogseqCaldav::builder()
-                        .graph(graph)
-                        .storage(storage)
-                        .collection(Uri::try_from(caldav_args.collection.trim_end_matches('/'))?)
-                        .build();
-
-                    match caldav_args.prioritise {
-                        SyncPrioritise::CalDav => handler.caldav_statuses_to_graph().await?,
-                        SyncPrioritise::Logseq => unimplemented!("SyncPrioritise::Logseq"),
-                    }
-
-                    handler.graph_items_to_caldav().await?;
+                    caldav_cmd.sync(password, graph).await?;
                 }
                 #[cfg(feature = "tui")]
                 CliSubCommand::Tui(_) => {

@@ -92,6 +92,7 @@ where
     /// Syncs the status of tasks that exist both on the calendar and in Logseq, overwriting the Logseq task status with the calendar task status if they differ.
     #[allow(clippy::missing_errors_doc)]
     #[allow(clippy::missing_panics_doc)]
+    // FIXME: Async function is not `Send`!
     pub async fn caldav_statuses_to_graph(&self) -> Result<()> {
         for mut entry in self.graph.entries() {
             let arena = Arena::new();
@@ -137,6 +138,7 @@ where
     /// Writes all `due` items from the Logseq graph to the calendar server.
     #[allow(clippy::missing_errors_doc)]
     #[allow(clippy::missing_panics_doc)]
+    // FIXME: Async function is not `Send`!
     pub async fn graph_items_to_caldav(&self) -> Result<()> {
         for mut entry in self.graph.entries() {
             let arena = Arena::new();
