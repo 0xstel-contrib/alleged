@@ -202,7 +202,7 @@ dependencies = [
 
 [[package]]
 name = "alleged"
-version = "0.2.3"
+version = "0.3.0"
 dependencies = [
  "actix-web",
  "alleged-lib",
@@ -221,7 +221,7 @@ dependencies = [
 
 [[package]]
 name = "alleged-lib"
-version = "0.2.3"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "comrak",
@@ -243,7 +243,7 @@ dependencies = [
 
 [[package]]
 name = "alleged-python"
-version = "0.2.3"
+version = "0.3.0"
 dependencies = [
  "alleged-lib",
  "pyo3",

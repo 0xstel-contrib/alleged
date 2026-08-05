@@ -3,7 +3,7 @@ members = ["bindings/*", "lib", "bin"]
 resolver = "3"
 
 [workspace.package]
-version = "0.2.3"
+version = "0.3.0"
 authors = ["stel <stel@national.shitposting.agency>"]
 edition = "2024"
 description = "Read/write to Logseq note graphs in Rust"

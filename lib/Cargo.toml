@@ -2,7 +2,6 @@
 name = "alleged-lib"
 exclude = [
     "/assets/",
-    "/bindings/"
 ]
 version.workspace = true
 authors.workspace = true

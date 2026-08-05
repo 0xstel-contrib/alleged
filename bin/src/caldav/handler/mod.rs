@@ -78,7 +78,7 @@ where
     }
     async fn fetch_stored_calendar_item(&self, href: &str) -> Option<(String, Item, Etag)> {
         if let Ok((stored_item, stored_etag)) = self.storage.get_item(href).await {
-            let stored_calendar: Calendar = stored_item.as_str().parse().unwrap();
+            let stored_calendar: Calendar = stored_item.as_str().parse().ok()?;
             if let Some(stored_hash) = stored_calendar.iter().find_map(|e| {
                 e.as_event()
                     .map_or_else(|| e.as_todo().and_then(content_hash), content_hash)
@@ -101,9 +101,15 @@ where
                 let Properties(properties) = block.properties();
 
                 if let Block::Task(ref mut task, _) = block {
+                    // The graph is initialised with `populate_ids()`, so the ID field is guaranteed to be `Some`.
+                    #[allow(clippy::unwrap_used)]
                     let id = properties.get("id").unwrap();
                     let href = format!("{}/{id}.ics", self.collection);
 
+                    // The stored calendar item is guaranteed to be valid... I think?
+                    // I know `vstorage`/`libdav` doesn't handle validation, but I'm pretty
+                    // sure the string there is OK to be parsed into an `icalendar::Calendar`
+                    #[allow(clippy::unwrap_used)]
                     if let Some((_, stored_item, _)) = self.fetch_stored_calendar_item(&href).await
                         && let Some(stored_todo) = Calendar::from_str(stored_item.as_str())
                             .unwrap()
@@ -141,6 +147,8 @@ where
                     let hash = block.hash();
                     let Properties(properties) = block.properties();
 
+                    // The graph is initialised with `populate_ids()`, so the ID field is guaranteed to be `Some`.
+                    #[allow(clippy::unwrap_used)]
                     let id = properties.get("id").unwrap();
                     let href = format!("{}/{id}.ics", self.collection);
                     let calendar_data = create_calendar_from(&block, id).to_string();
