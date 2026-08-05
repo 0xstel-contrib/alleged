@@ -28,6 +28,7 @@ hyper-util = { version = "0.1.20", features = ["client"], optional = true }
 icalendar = { workspace = true, optional = true }
 libdav = { version = "0.10.6", optional = true }
 serde = { workspace = true, optional = true }
+time = { workspace = true }
 tokio = { version = "1.53.1", features = ["full"] }
 tower-http = { version = "0.7.0", features = ["auth"], optional = true }
 vstorage = { version = "0.10.0", default-features = false, optional = true }

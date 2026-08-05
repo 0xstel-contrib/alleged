@@ -45,7 +45,7 @@ where
         self
     }
     #[allow(clippy::missing_panics_doc)]
-    // I'm OK panicking here because I'm too lazy to draft a proper error type & make this return a `Result<T, E>`
+    // I'm OK panicking here because I'm too lazy to draft a proper error type & make this return a `Result<T, E>` 😮‍💨️
     #[allow(clippy::unwrap_used)]
     pub fn build(self) -> LogseqCaldav<S> {
         let graph = self.graph.unwrap();

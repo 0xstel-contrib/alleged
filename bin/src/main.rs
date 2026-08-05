@@ -23,6 +23,11 @@ use anyhow::{Result, anyhow};
 use argh::FromArgs;
 use std::env;
 use tokio;
+#[cfg(feature = "api")]
+use {
+    actix_web::{App, HttpServer, web},
+    std::sync::Arc,
+};
 #[cfg(feature = "caldav")]
 use {
     http::Uri,
@@ -49,7 +54,22 @@ async fn main() -> Result<()> {
 
             match args.command {
                 #[cfg(feature = "api")]
-                CliSubCommand::Api(api_cmd) => println!("{api_cmd:#?}"),
+                CliSubCommand::Api(api_cmd) => {
+                    let graph = Arc::new(graph);
+
+                    println!("Listening on {}:{}...", api_cmd.host, api_cmd.port);
+                    HttpServer::new(move || {
+                        App::new()
+                            .app_data(web::Data::new(State {
+                                graph: Arc::clone(&graph),
+                            }))
+                            .service(favicon)
+                            .service(journal_append_block)
+                    })
+                    .bind((api_cmd.host, api_cmd.port))?
+                    .run()
+                    .await?;
+                }
                 #[cfg(feature = "caldav")]
                 CliSubCommand::CalDavSync(caldav_args) => {
                     let caldav_pass = env::var("CALDAV_PASS")
