@@ -19,7 +19,7 @@ const fn default_sync_prioritise() -> SyncPrioritise {
 /// sync your logseq graph to a calendar
 #[derive(FromArgs, PartialEq, Eq, Debug)]
 #[argh(subcommand, name = "caldav-sync")]
-pub struct CalDavSync {
+pub struct CalDavSyncCommand {
     #[allow(clippy::doc_markdown)]
     /// caldav server uri [default: http://127.0.0.1:5232]
     #[argh(option, short = 's', default = "default_caldav_uri()")]

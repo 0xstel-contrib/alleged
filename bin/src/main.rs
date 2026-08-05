@@ -18,16 +18,15 @@ pub use consts::*;
 #[cfg(feature = "tui")]
 pub use tui::*;
 
+#[cfg(feature = "api")]
+use actix_web::{App, HttpServer, web};
 use alleged_lib::graph::Graph;
 use anyhow::{Result, anyhow};
 use argh::FromArgs;
 use std::env;
+#[cfg(any(feature = "api", feature = "tui"))]
+use std::sync::Arc;
 use tokio;
-#[cfg(feature = "api")]
-use {
-    actix_web::{App, HttpServer, web},
-    std::sync::Arc,
-};
 #[cfg(feature = "caldav")]
 use {
     http::Uri,
@@ -103,7 +102,12 @@ async fn main() -> Result<()> {
                     handler.graph_items_to_caldav().await?;
                 }
                 #[cfg(feature = "tui")]
-                CliSubCommand::Tui(tui_cmd) => println!("{tui_cmd:#?}"),
+                CliSubCommand::Tui(_) => {
+                    let graph = Arc::new(graph);
+                    let mut app = Tui::new(&graph);
+
+                    ratatui::run(|terminal| app.run(terminal))?;
+                }
             }
         }
         Err(early_exit) => {

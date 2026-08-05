@@ -1,9 +1,9 @@
 #[cfg(feature = "caldav")]
-use crate::CalDavSync;
+use crate::CalDavSyncCommand;
 #[cfg(feature = "tui")]
-use crate::Tui;
+use crate::TuiCommand;
 #[cfg(feature = "api")]
-use crate::api::Api;
+use crate::api::ApiCommand;
 use argh::FromArgs;
 use std::path::PathBuf;
 
@@ -21,11 +21,11 @@ fn default_exclude() -> Vec<String> {
 #[argh(subcommand)]
 pub enum CliSubCommand {
     #[cfg(feature = "api")]
-    Api(Api),
+    Api(ApiCommand),
     #[cfg(feature = "caldav")]
-    CalDavSync(CalDavSync),
+    CalDavSync(CalDavSyncCommand),
     #[cfg(feature = "tui")]
-    Tui(Tui),
+    Tui(TuiCommand),
 }
 
 /// command-line interface for logseq

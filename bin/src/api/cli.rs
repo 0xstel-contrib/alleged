@@ -7,7 +7,7 @@ fn default_host() -> String {
 /// run an api server to interface with your graph
 #[derive(FromArgs, PartialEq, Eq, Debug)]
 #[argh(subcommand, name = "api")]
-pub struct Api {
+pub struct ApiCommand {
     /// host to run the api server on [default: 127.0.0.1]
     #[argh(option, short = 'h', default = "default_host()")]
     pub host: String,
