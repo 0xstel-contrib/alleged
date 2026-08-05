@@ -20,12 +20,12 @@ fn default_exclude() -> Vec<String> {
 #[derive(FromArgs, PartialEq, Eq, Debug)]
 #[argh(subcommand)]
 pub enum CliSubCommand {
-    #[cfg(feature = "api")]
-    Api(ApiCommand),
-    #[cfg(feature = "caldav")]
-    CalDavSync(CalDavSyncCommand),
     #[cfg(feature = "tui")]
     Tui(TuiCommand),
+    #[cfg(feature = "caldav")]
+    CalDavSync(CalDavSyncCommand),
+    #[cfg(feature = "api")]
+    Api(ApiCommand),
 }
 
 #[cfg(feature = "tui")]
