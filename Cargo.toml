@@ -1,5 +1,6 @@
 [workspace]
-members = ["bindings/*"]
+members = ["bindings/*", "lib", "bin"]
+resolver = "3"
 
 [workspace.package]
 version = "0.2.3"
@@ -15,54 +16,10 @@ license = "0BSD"
 [workspace.dependencies]
 time = { version = "0.3.54", features = ["formatting", "macros", "parsing", "local-offset"] }
 pyo3 = "0.29.0"
+alleged-lib = { path = "lib" }
+icalendar = "0.17.0"
+serde = { version = "1.0.0", features = ["derive"] }
 
 [workspace.lints.clippy]
 nursery = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
-
-[package]
-name = "alleged-lib"
-exclude = [
-    "/.cargo/",
-    "/assets/",
-    "/bindings/"
-]
-version.workspace = true
-authors.workspace = true
-edition.workspace = true
-description.workspace = true
-keywords.workspace = true
-homepage.workspace = true
-repository.workspace = true
-readme.workspace = true
-license.workspace = true
-
-[lints]
-workspace = true
-
-[features]
-default = ["regex-lite"]
-regex = ["dep:regex"]
-regex-lite = ["dep:regex-lite"]
-serde = ["dep:serde", "time/serde"]
-python = ["dep:pyo3"]
-icalendar = ["dep:icalendar", "dep:chrono"]
-hash = ["dep:twox-hash", "dep:hex"]
-
-[dependencies]
-chrono = { version = "0.4.0", optional = true }
-comrak = { version = "0.54.0", default-features = false }
-hex = { version = "0.4.0", optional = true }
-humantime = "2.4.0"
-icalendar = { version = "0.17.0", optional = true }
-nutype = "0.7.0"
-pyo3 = { workspace = true, optional = true }
-regex = { version = "1.13.0", optional = true }
-regex-lite = { version = "0.1.0", optional = true }
-rustc-hash = "2.1.0"
-serde = { version = "1.0.0", features = ["derive"], optional = true }
-thiserror = "2.0.0"
-time = { workspace = true }
-twox-hash = { version = "2.1.0", optional = true }
-uuid = { version = "1.24.0", features = ["v4"] }
-walkdir = "2.5.0"

@@ -17,5 +17,5 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-alleged-lib = { path = "../../" }
+alleged-lib = { workspace = true }
 pyo3 = { workspace = true }

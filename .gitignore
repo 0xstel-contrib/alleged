@@ -4,6 +4,5 @@
 !/assets/example_graph/logseq/.gitkeep
 /assets/example_graph/pages/*
 !/assets/example_graph/pages/.gitkeep
-Cargo.lock
 .env
 target/
