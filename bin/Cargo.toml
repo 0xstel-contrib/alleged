@@ -13,7 +13,7 @@ workspace = true
 
 [features]
 default = ["tui", "caldav", "api"]
-tui = []
+tui = ["dep:ratatui"]
 api = ["dep:serde", "dep:actix-web"]
 caldav = ["dep:http", "dep:hyper-rustls", "dep:hyper-util", "dep:icalendar", "dep:libdav", "dep:tower-http", "dep:vstorage"]
 
@@ -22,11 +22,13 @@ actix-web = { version = "4", optional = true }
 alleged-lib = { workspace = true, features = ["icalendar", "hash"] }
 anyhow = "1.0.104"
 argh = { version = "0.1.19", default-features = false, features = ["help"] }
+home = "0.5.12"
 http = { version = "1.5.0", optional = true }
 hyper-rustls = { version = "0.27.9", default-features = false, features = ["ring", "http1", "native-tokio", "tls12", "logging"], optional = true }
 hyper-util = { version = "0.1.20", features = ["client"], optional = true }
 icalendar = { workspace = true, optional = true }
 libdav = { version = "0.10.6", optional = true }
+ratatui = { version = "0.30.2", optional = true }
 serde = { workspace = true, optional = true }
 time = { workspace = true }
 tokio = { version = "1.53.1", features = ["full"] }

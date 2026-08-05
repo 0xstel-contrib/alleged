@@ -58,6 +58,7 @@ async fn main() -> Result<()> {
                     let graph = Arc::new(graph);
 
                     println!("Listening on {}:{}...", api_cmd.host, api_cmd.port);
+
                     HttpServer::new(move || {
                         App::new()
                             .app_data(web::Data::new(State {
